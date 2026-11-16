@@ -16,12 +16,14 @@ Run these from the repository root unless noted:
 | Install Flutter dependencies | `flutter pub get` |
 | Run API in development | `npm run dev:api` |
 | Run doubt worker in development | `npm run dev:worker` |
-| Run weekly archive worker (included with doubt worker) | `npm run dev:worker` |
+| Run doubt, weekly archive, and misconception workers | `npm run dev:worker` |
 | Build API | `npm run build` |
 | Run API tests | `npm test` |
+| Run ML service tests | From `ml-service`, run `python -m unittest test_main` |
 | Lint API | `npm run lint` |
 | Apply database migrations | `npm run db:migrate` |
 | Seed clearly labelled sample content | Start the ML service, then `npm run db:seed` |
+| Export labelled misconception clusters | `npm run export:misconceptions` |
 | Run Flutter app | From the repository root, run `flutter run --dart-define=SOLVIX_API_URL=http://10.0.2.2:3000/api/v1` on Android emulator |
 | Test Flutter app | `flutter test` |
 | Analyze Flutter app | `flutter analyze --no-fatal-infos` |
@@ -39,6 +41,7 @@ Use Node.js 20, Flutter/Dart versions declared by the Flutter package, and Pytho
 - Doubt requests use a Redis-backed BullMQ queue and remain pollable at `GET /api/v1/doubts/:id`; Socket.IO only delivers updates to the authenticated user's room.
 - Weekly leaderboard counts are durable in PostgreSQL and projected into a timezone-specific Redis sorted set; reads reconcile the active week, and the worker archives finished weeks.
 - Adaptive practice updates per-topic skill and per-question difficulty estimates transactionally, records every rating event, prioritizes due resurfacing, and exposes API-backed ECE progress.
+- Misconception clustering is queued to the separate worker, which sends anonymized topic doubts to the FastAPI UMAP/HDBSCAN endpoint. Admin labels are required before tagged hints are returned to students.
 - ECE uses confidence probability `(raw - 1) / 4` and equal-width bins across backend and Flutter implementations.
 - Route all model calls through the provider interface; tests must use deterministic mocks.
 - Label synthetic/demo data and never invent evaluation metrics.

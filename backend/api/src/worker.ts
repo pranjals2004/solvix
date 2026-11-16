@@ -16,6 +16,11 @@ import { RedisLeaderboardService } from './leaderboard/service';
 import { BullLeaderboardQueue, LEADERBOARD_QUEUE_NAME } from './leaderboard/queue';
 import { weekStartFor } from './leaderboard/week';
 import { IoredisService } from './infra/redis';
+import { randomUUID } from 'node:crypto';
+import { PostgresMisconceptionRepository } from './db/misconception-repository';
+import { MISCONCEPTION_QUEUE_NAME, BullMisconceptionQueue } from './misconceptions/queue';
+import { MlServiceClusteringClient } from './misconceptions/ml-client';
+import { MisconceptionClusteringService } from './misconceptions/service';
 
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
@@ -27,7 +32,9 @@ async function startWorker() {
   const leaderboardRedis = new IoredisService(config.redisUrl);
   await leaderboardRedis.connect();
   const leaderboardService = new RedisLeaderboardService(
-    new PostgresLeaderboardRepository(pool), leaderboardRedis, config.leaderboardTimezone ?? 'Asia/Kolkata',
+    new PostgresLeaderboardRepository(pool),
+    leaderboardRedis,
+    config.leaderboardTimezone ?? 'Asia/Kolkata',
   );
   const resolver = new DoubtResolver(
     repository,
@@ -43,24 +50,62 @@ async function startWorker() {
   );
   const archiveQueue = new BullLeaderboardQueue(config.redisUrl);
   await archiveQueue.scheduleWeeklyArchive(config.leaderboardTimezone ?? 'Asia/Kolkata');
+  const misconceptionQueue = new BullMisconceptionQueue(config.redisUrl);
+  await misconceptionQueue.scheduleWeekly(config.leaderboardTimezone ?? 'Asia/Kolkata');
+  const misconceptionService = new MisconceptionClusteringService(
+    new PostgresMisconceptionRepository(pool),
+    new MlServiceClusteringClient(config.mlServiceUrl),
+  );
   const archiveWorker = new Worker(
     LEADERBOARD_QUEUE_NAME,
     async (job) => {
       if (job.name !== 'archive-week') return;
       const scheduledAt = job.opts.prevMillis ?? job.timestamp;
-      const weekStart = weekStartFor(new Date(scheduledAt), config.leaderboardTimezone ?? 'Asia/Kolkata');
+      const weekStart = weekStartFor(
+        new Date(scheduledAt),
+        config.leaderboardTimezone ?? 'Asia/Kolkata',
+      );
       await leaderboardService.finalizeWeek(weekStart);
     },
     { connection: new Redis(config.redisUrl, { maxRetriesPerRequest: null }) },
   );
-  archiveWorker.on('error', (error) => process.stderr.write(`Leaderboard archive worker error: ${error.message}\n`));
+  const misconceptionWorker = new Worker<{ runId?: string }>(
+    MISCONCEPTION_QUEUE_NAME,
+    async (job) => {
+      const runId = job.data.runId ?? randomUUID();
+      const result = await misconceptionService.run(runId);
+      process.stdout.write(
+        `Misconception run ${result.runId} processed ${result.doubtsProcessed} doubts across ${result.topicsProcessed} topics.\n`,
+      );
+      return result;
+    },
+    { connection: new Redis(config.redisUrl, { maxRetriesPerRequest: null }), concurrency: 1 },
+  );
+  archiveWorker.on('error', (error) =>
+    process.stderr.write(`Leaderboard archive worker error: ${error.message}\n`),
+  );
   archiveWorker.on('failed', (job, error) => {
     process.stderr.write(`Leaderboard archive ${job?.id ?? 'unknown'} failed: ${error.message}\n`);
   });
-  archiveWorker.on('ready', () => process.stdout.write('Solvix leaderboard archive schedule is ready.\n'));
+  archiveWorker.on('ready', () =>
+    process.stdout.write('Solvix leaderboard archive schedule is ready.\n'),
+  );
+  misconceptionWorker.on('failed', (job, error) => {
+    process.stderr.write(
+      `Misconception clustering ${job?.id ?? 'unknown'} failed: ${error.message}\n`,
+    );
+  });
+  misconceptionWorker.on('error', (error) =>
+    process.stderr.write(`Misconception worker error: ${error.message}\n`),
+  );
+  misconceptionWorker.on('ready', () =>
+    process.stdout.write('Solvix misconception schedule is ready.\n'),
+  );
   worker.on('failed', (job, error) => {
     if (!job || job.attemptsMade < (job.opts.attempts ?? 1)) return;
-    process.stderr.write(`Doubt job ${job.id ?? job.data.doubtId} exhausted retries: ${error.message}\n`);
+    process.stderr.write(
+      `Doubt job ${job.id ?? job.data.doubtId} exhausted retries: ${error.message}\n`,
+    );
     void resolver.fail(job.data.doubtId);
   });
   worker.on('ready', () => process.stdout.write('Solvix doubt worker is ready.\n'));
@@ -69,7 +114,14 @@ async function startWorker() {
   const shutdown = async (signal: string) => {
     process.stdout.write(`Received ${signal}; closing doubt worker.\n`);
     await Promise.allSettled([
-      worker.close(), archiveWorker.close(), archiveQueue.close(), pool.end(), emitter.close(), leaderboardRedis.close(),
+      worker.close(),
+      archiveWorker.close(),
+      misconceptionWorker.close(),
+      archiveQueue.close(),
+      misconceptionQueue.close(),
+      pool.end(),
+      emitter.close(),
+      leaderboardRedis.close(),
     ]);
   };
   process.on('SIGINT', () => void shutdown('SIGINT'));

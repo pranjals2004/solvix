@@ -18,6 +18,8 @@ import type { Server as SocketServer } from 'socket.io';
 import { PostgresLeaderboardRepository } from './db/leaderboard-repository';
 import { RedisLeaderboardService } from './leaderboard/service';
 import { PostgresPracticeRepository, PostgresProgressRepository } from './db/practice-repository';
+import { PostgresMisconceptionRepository } from './db/misconception-repository';
+import { BullMisconceptionQueue } from './misconceptions/queue';
 
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
@@ -26,6 +28,7 @@ async function start() {
   const pool = createPool(config.databaseUrl);
   const redis = new IoredisService(config.redisUrl);
   const queue = new BullDoubtQueue(config.redisUrl);
+  const misconceptionQueue = new BullMisconceptionQueue(config.redisUrl);
   const leaderboardRepository = new PostgresLeaderboardRepository(pool);
   const leaderboard = new RedisLeaderboardService(
     leaderboardRepository,
@@ -59,6 +62,8 @@ async function start() {
       progressRepository: new PostgresProgressRepository(pool),
       doubtRepository: new PostgresDoubtRepository(pool),
       doubtQueue: queue,
+      misconceptionRepository: new PostgresMisconceptionRepository(pool),
+      misconceptionQueue,
       objectStorage: new S3PrivateObjectStorage(config),
       weeklyLeaderboard: leaderboard,
     });
@@ -69,7 +74,12 @@ async function start() {
     });
   } catch (error) {
     process.stderr.write(`Solvix API startup failed: ${String(error)}\n`);
-    await Promise.allSettled([pool.end(), redis.close(), queue.close()]);
+    await Promise.allSettled([
+      pool.end(),
+      redis.close(),
+      queue.close(),
+      misconceptionQueue.close(),
+    ]);
     process.exitCode = 1;
     return;
   }
@@ -77,7 +87,12 @@ async function start() {
   const shutdown = (signal: string) => {
     process.stdout.write(`Received ${signal}; closing services.\n`);
     const closeDependencies = () => {
-      void Promise.allSettled([pool.end(), redis.close(), queue.close()]);
+      void Promise.allSettled([
+        pool.end(),
+        redis.close(),
+        queue.close(),
+        misconceptionQueue.close(),
+      ]);
     };
     if (socketServer) socketServer.close(closeDependencies);
     else server?.close(closeDependencies);

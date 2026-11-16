@@ -11,6 +11,7 @@
     "test": "npm --workspace @solvix/api test",
     "lint": "npm --workspace @solvix/api run lint",
     "db:migrate": "npm --workspace @solvix/api run db:migrate",
-    "db:seed": "npm --workspace @solvix/api run db:seed"
+    "db:seed": "npm --workspace @solvix/api run db:seed",
+    "export:misconceptions": "tsx scripts/export_misconceptions.ts"
   }
 }

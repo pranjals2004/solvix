@@ -49,3 +49,12 @@
 - **Choose the closest question to the student's skill plus Gaussian noise from questions in the configured rating window.** If none fit the window, restrict the pool to the nearest available difficulty; avoid questions attempted in the last seven days when alternatives exist.
 - **Claim due resurface rows transactionally and suppress another delivery for six hours.** A miss resets the HLR-inspired sequence to one day; a correct answer on a due item advances to 3, 7, then 14 days.
 - **Compute ECE from the most recent 2,000 rating events with confidence mapped by `(raw - 1) / 4`.** The mobile app uses the same equal-width-bin formula and reports no-data state instead of a fabricated value.
+
+## Phase 7
+
+- **Cluster completed, topic-linked doubts and cap each topic run at the 1,000 newest records.** UMAP and HDBSCAN run in the ML service with fixed seeds; topic samples below six remain unclustered because a low-sample manifold is not stable enough to label.
+- **Remove email addresses and each author's known name before sending doubt text to the ML service.** Exemplar text returned to the admin endpoint is anonymized with the same helper.
+- **Persist run state separately from discovered clusters.** This lets an empty completed run supersede stale labels, while failed runs leave the last successful student hints available.
+- **Only completed clusters with a human label and a current user tag are surfaced to that student.** New cluster labels always begin empty and require admin review.
+- **Run clustering each Monday at 02:00 in `LEADERBOARD_TIMEZONE` and expose an admin-only manual queue trigger.** Topic runs are transactionally replaced on retry using a stable run ID.
+- **Export only cluster labels and aggregate counts.** Share of doubt volume uses cluster size divided by the number of doubts processed in that topic's latest run; no student identifiers or raw text are exported.

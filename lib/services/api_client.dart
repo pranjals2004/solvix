@@ -149,6 +149,17 @@ class SolvixApi {
     final response = await _dio.get<Map<String, dynamic>>('/progress');
     return ProgressData.fromJson(response.data!);
   }
+
+  Future<List<MisconceptionHint>> getMisconceptionHints() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/misconceptions/hints',
+    );
+    return (response.data!['hints'] as List<dynamic>)
+        .map(
+          (value) => MisconceptionHint.fromJson(value as Map<String, dynamic>),
+        )
+        .toList();
+  }
 }
 
 String apiErrorMessage(Object error) {

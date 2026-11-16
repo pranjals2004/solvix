@@ -16,7 +16,8 @@ flowchart LR
   W --> P
   W --> R
   W --> L[LLMProvider]
-  W --> ML[FastAPI ML service]
+  W -->|doubt embeddings and scheduled clustering| ML[FastAPI ML service]
+  W -->|cluster runs, exemplars, user tags| P
 ```
 
 The API owns authentication, validation, synchronous product endpoints, initial doubt requests, weekly count projection, and adaptive practice. PostgreSQL stores the distinct question credited per user and week; the Redis sorted set orders the active week and can be rebuilt from those durable rows. Per-user/topic skill and per-question difficulty estimates and their event history are updated atomically with each attempt. The practice selector prioritizes due resurface rows, then selects by experiment arm. The separate worker resolves doubts with the platform's pgvector content and a provider-agnostic LLM interface, and archives the leaderboard on its timezone-based weekly schedule. The Flutter client uses Dio with a secure token store, and receives doubt results over authenticated per-user Socket.IO rooms or status polling. Redis supports short-lived tokens, rate limits, queues, realtime coordination, and leaderboard scores; MinIO stores private user uploads. The Python service owns embeddings and clustering. Flutter remains in the repository root to preserve the pre-existing project setup (see `docs/DECISIONS.md`).

@@ -18,6 +18,11 @@ Base path: `/api/v1`. JSON errors use `{ "error": { "code": string, "message": s
 | POST | `/submissions` | Authenticated question attempt; validates confidence 1–5 and returns correctness plus the worked solution |
 | GET | `/practice/next?topicId=` | Authenticated arm-aware question selection; due resurfacing is prioritized |
 | GET | `/progress` | Authenticated topic rating, attempt, accuracy, and recent calibration observations |
+| POST | `/admin/misconceptions/run` | Admin-only queued clustering run; returns HTTP 202 and run/job id |
+| GET | `/admin/misconceptions/runs/:runId` | Admin-only per-topic progress and failure status for a run |
+| GET | `/admin/misconceptions/clusters?topicId=` | Admin-only latest completed clusters with anonymized exemplars and labels |
+| PATCH | `/admin/misconceptions/clusters/:clusterId` | Admin-only human label assignment |
+| GET | `/misconceptions/hints` | Authenticated student's hints from their tagged, labelled clusters |
 | GET | `/leaderboard/weekly?limit=20` | Current local week top list and the authenticated caller's rank/count |
 | GET | `/leaderboard/archive?week=YYYY-MM-DD&limit=100` | Archived ranking for a Monday week start and the caller's rank/count |
 | GET | `/admin/flagged-users?limit=50` | Admin-only list of accounts flagged for repeated very fast attempts |
@@ -42,6 +47,8 @@ Requests under `/api/v1` share a Redis-backed limit of 120 requests per IP addre
 `GET /practice/next` requires a UUID `topicId`. It returns `{question,isResurfaced,selectionMode,skillRating}` or `{question:null,reason:"NO_AVAILABLE_QUESTIONS"}`. Due resurfacing is offered first. Otherwise the `random` arm samples randomly and the two Elo arms select near the user's topic rating while avoiding recently seen questions when possible. Question responses never include answer keys.
 
 `GET /progress` returns topic estimates and up to 2,000 most recent confidence/outcome observations. The mobile app computes ECE using `C=(raw-1)/4` and equal-width bins; it shows an empty state when no attempts exist. Configure the adaptive algorithm with `ELO_K`, `ELO_GAMMA`, `ELO_EPSILON`, `ELO_SIGMA`, `ELO_WEIGHTING_VARIANT`, `ELO_ALPHA`, and `ELO_BETA`.
+
+The separate worker processes clustering jobs. It runs weekly on Monday at 02:00 in `LEADERBOARD_TIMEZONE`; admins can also enqueue a run. Clustering only uses completed doubts mapped to a topic, takes up to the most recent 1,000 per topic, and removes known names plus email addresses before sending text to the ML service. Noise assignments remain unclustered. New clusters start unlabeled and are hidden from students until an admin labels them. The export command `npm run export:misconceptions` writes the latest labelled cluster sizes and share of that topic run's doubt volume to `exports/labelled-misconceptions.csv` (override with `MISCONCEPTION_EXPORT_PATH`).
 
 The leaderboard uses Monday-to-Sunday weeks in `LEADERBOARD_TIMEZONE` (default `Asia/Kolkata`). A correct attempt taking at least 10 seconds increments a student's count only the first time they solve that question during the week. Incorrect and faster attempts remain in submission history but do not count. The score encodes count first, then the time the user reached the current count (earlier ranks higher); PostgreSQL is the durable source and each weekly read reconciles the Redis ZSET. Five attempts under 10 seconds within 10 minutes flag the account for administrator review. The worker schedules a Sunday 23:59 local archive; next week's key is separate.
 

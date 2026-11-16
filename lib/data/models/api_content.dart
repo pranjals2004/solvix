@@ -208,3 +208,25 @@ class ProgressData {
         .toList(),
   );
 }
+
+class MisconceptionHint {
+  const MisconceptionHint({
+    required this.clusterId,
+    required this.label,
+    required this.topicId,
+    required this.topicName,
+  });
+
+  final String clusterId;
+  final String label;
+  final String topicId;
+  final String topicName;
+
+  factory MisconceptionHint.fromJson(Map<String, dynamic> json) =>
+      MisconceptionHint(
+        clusterId: json['clusterId'] as String,
+        label: json['label'] as String,
+        topicId: json['topicId'] as String,
+        topicName: json['topicName'] as String,
+      );
+}

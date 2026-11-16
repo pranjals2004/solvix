@@ -17,6 +17,8 @@ import { createDoubtRouter } from './doubts/routes';
 import type { DoubtQueue, DoubtRepository, PrivateObjectStorage } from './doubts/types';
 import { createLeaderboardRouter } from './leaderboard/routes';
 import type { WeeklyLeaderboard } from './leaderboard/types';
+import { createMisconceptionRouter } from './misconceptions/routes';
+import type { MisconceptionQueue, MisconceptionRepository } from './misconceptions/types';
 
 export type AppDependencies = {
   repository: AuthRepository;
@@ -30,6 +32,8 @@ export type AppDependencies = {
   doubtQueue?: DoubtQueue;
   objectStorage?: PrivateObjectStorage;
   weeklyLeaderboard?: WeeklyLeaderboard;
+  misconceptionRepository?: MisconceptionRepository;
+  misconceptionQueue?: MisconceptionQueue;
 };
 
 export function createApp(dependencies: AppDependencies) {
@@ -129,6 +133,17 @@ export function createApp(dependencies: AppDependencies) {
         repository: dependencies.doubtRepository,
         queue: dependencies.doubtQueue,
         storage: dependencies.objectStorage,
+        redis: dependencies.redis,
+        config: dependencies.config,
+      }),
+    );
+  }
+  if (dependencies.misconceptionRepository && dependencies.misconceptionQueue) {
+    app.use(
+      '/api/v1',
+      createMisconceptionRouter({
+        repository: dependencies.misconceptionRepository,
+        queue: dependencies.misconceptionQueue,
         redis: dependencies.redis,
         config: dependencies.config,
       }),

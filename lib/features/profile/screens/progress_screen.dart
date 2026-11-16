@@ -38,7 +38,7 @@ class ProgressScreen extends ConsumerWidget {
   }
 }
 
-class _ProgressContent extends StatelessWidget {
+class _ProgressContent extends ConsumerWidget {
   const _ProgressContent({required this.data});
 
   final ProgressData data;
@@ -57,8 +57,9 @@ class _ProgressContent extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final overall = _eceFor(null);
+    final hints = ref.watch(misconceptionHintsProvider);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -88,6 +89,38 @@ class _ProgressContent extends StatelessWidget {
               ],
             ),
           ),
+        ),
+        const SizedBox(height: 14),
+        hints.when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
+          data: (items) => items.isEmpty
+              ? const SizedBox.shrink()
+              : Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Patterns from your recent doubts',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'You may be working through these ideas. Use them as gentle review prompts.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 10),
+                        for (final hint in items)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Text('• ${hint.topicName}: ${hint.label}'),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
         ),
         const SizedBox(height: 14),
         if (data.topics.isEmpty)

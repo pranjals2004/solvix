@@ -126,3 +126,6 @@ final questionsProvider = FutureProvider.family<List<ApiQuestion>, String>(
 final progressProvider = FutureProvider<ProgressData>(
   (ref) => ref.watch(solvixApiProvider).getProgress(),
 );
+final misconceptionHintsProvider = FutureProvider<List<MisconceptionHint>>(
+  (ref) => ref.watch(solvixApiProvider).getMisconceptionHints(),
+);
