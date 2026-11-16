@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gate_resolver/core/constants/app_colors.dart';
 import 'package:gate_resolver/core/widgets/custom_widgets.dart';
 import 'package:gate_resolver/core/providers/providers.dart';
-import 'package:gate_resolver/data/models/doubt.dart';
 import 'package:gate_resolver/services/doubt_service.dart';
 import 'package:gate_resolver/features/doubt/screens/solution_screen.dart';
 

@@ -24,13 +24,14 @@ class AppCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(key) {
-    final isDark = Theme.of(key).brightness == Brightness.dark;
-    
-    Widget cardContent = Container(
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final radius = BorderRadius.circular(borderRadius);
+
+    return Container(
       decoration: BoxDecoration(
         color: color ?? (isDark ? AppColors.cardDark : AppColors.cardLight),
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: radius,
         border: border ?? (isDark 
             ? Border.all(color: Colors.white.withOpacity(0.08), width: 1)
             : Border.all(color: AppColors.primaryLight.withOpacity(0.05), width: 1)),
@@ -42,21 +43,24 @@ class AppCard extends StatelessWidget {
           )
         ],
       ),
-      padding: padding ?? const EdgeInsets.all(16),
-      child: child,
+      child: Material(
+        type: MaterialType.transparency,
+        shape: RoundedRectangleBorder(borderRadius: radius),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: padding ?? const EdgeInsets.all(16),
+          child: onTap == null
+              ? child
+              : InkWell(
+                  onTap: onTap,
+                  borderRadius: radius,
+                  splashColor: AppColors.primaryLight.withOpacity(0.1),
+                  highlightColor: AppColors.primaryLight.withOpacity(0.05),
+                  child: child,
+                ),
+        ),
+      ),
     );
-
-    if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(borderRadius),
-        splashColor: AppColors.primaryLight.withOpacity(0.1),
-        highlightColor: AppColors.primaryLight.withOpacity(0.05),
-        child: cardContent,
-      );
-    }
-
-    return cardContent;
   }
 }
 

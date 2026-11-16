@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gate_resolver/core/constants/app_colors.dart';
-import 'package:gate_resolver/core/widgets/custom_widgets.dart';
 import 'package:gate_resolver/core/widgets/math_text.dart';
 import 'package:gate_resolver/core/providers/providers.dart';
 import 'package:gate_resolver/data/models/subject.dart';

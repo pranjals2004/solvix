@@ -10,6 +10,8 @@ void main() {
         child: GateResolverApp(),
       ),
     );
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
 
     // Verify that the dashboard greeting exists
     expect(find.textContaining('Good Morning'), findsOneWidget);

@@ -41,12 +41,12 @@ class AnalyticsScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'GATE Score Predictor',
+                          'Synthetic demo data',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primaryLight),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Based on your accuracy (${(user.accuracyRate * 100).toStringAsFixed(0)}%) and questions solved (${user.questionsSolved}), you are on track for a predicted GATE score of 620-650.',
+                          'These sample values only demonstrate the progress screen. Score predictions will be computed from real practice data after the backend is connected.',
                           style: theme.textTheme.bodyMedium,
                         ),
                       ],

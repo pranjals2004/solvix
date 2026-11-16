@@ -4,13 +4,16 @@ import 'package:gate_resolver/data/models/doubt.dart';
 import 'package:gate_resolver/data/models/subject.dart';
 import 'package:gate_resolver/data/models/community_post.dart';
 
+// All accounts, accuracy values, questions, and activity in this file are synthetic UI demo data.
+// They are not pilot observations or evaluation results.
 class MockData {
   // 1. Mock Users
   static final UserProfile currentUser = UserProfile(
     id: 'student_1',
     name: 'Aarav Sharma',
     email: 'aarav.sharma@btech.edu',
-    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80',
+    // Keep the signed-in demo learner usable in offline development and widget tests.
+    avatarUrl: '',
     bio: 'GATE CSE 2027 Aspirant | Final Year B.Tech CSE | Core Interests: Computer Networks & Algorithms.',
     streakDays: 14,
     questionsSolved: 127,

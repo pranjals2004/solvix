@@ -5,7 +5,6 @@ import 'package:gate_resolver/core/widgets/custom_widgets.dart';
 import 'package:gate_resolver/core/widgets/math_text.dart';
 import 'package:gate_resolver/core/providers/providers.dart';
 import 'package:gate_resolver/data/models/community_post.dart';
-import 'package:gate_resolver/data/mock/mock_data.dart';
 
 class CommunityDetailScreen extends ConsumerStatefulWidget {
   final String postId;

@@ -14,7 +14,6 @@ class ProfileScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final user = ref.watch(currentUserProvider);
     final themeMode = ref.watch(themeModeProvider);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -32,8 +31,11 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   CircleAvatar(
                     radius: 36,
-                    backgroundImage: NetworkImage(user.avatarUrl),
+                    backgroundImage: user.avatarUrl.isEmpty ? null : NetworkImage(user.avatarUrl),
                     backgroundColor: AppColors.primaryLight.withOpacity(0.1),
+                    child: user.avatarUrl.isEmpty
+                        ? Text(user.name.trim().isEmpty ? '?' : user.name.trim()[0].toUpperCase())
+                        : null,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -102,7 +104,7 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         Text('${(user.accuracyRate * 100).toStringAsFixed(0)}%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                         const SizedBox(height: 2),
-                        const Text('Accuracy', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                        const Text('Demo accuracy', style: TextStyle(color: Colors.grey, fontSize: 11)),
                       ],
                     ),
                   ),
@@ -147,7 +149,7 @@ class ProfileScreen extends ConsumerWidget {
                   ListTile(
                     leading: const Icon(Icons.insights_outlined, color: AppColors.secondaryLight),
                     title: const Text('Study Progress & Analytics'),
-                    subtitle: const Text('Check predicted score & weak subjects'),
+                    subtitle: const Text('Review practice history and topic trends'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                     onTap: () {
                       Navigator.push(

@@ -1,0 +1,14 @@
+{
+  "name": "solvix",
+  "private": true,
+  "workspaces": [
+    "backend/api"
+  ],
+  "scripts": {
+    "dev:api": "npm --workspace @solvix/api run dev",
+    "build": "npm --workspace @solvix/api run build",
+    "test": "npm --workspace @solvix/api test",
+    "lint": "npm --workspace @solvix/api run lint",
+    "db:migrate": "npm --workspace @solvix/api run db:migrate"
+  }
+}

@@ -25,10 +25,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _isAnswered = false;
   bool _isCorrect = false;
   bool _isLoadingQuestion = true;
+  late final Future<List<Doubt>> _recentDoubtsFuture;
 
   @override
   void initState() {
     super.initState();
+    _recentDoubtsFuture = ref.read(doubtServiceProvider).getDoubtHistory();
     _loadDailyQuestion();
   }
 
@@ -108,8 +110,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     borderRadius: BorderRadius.circular(20),
                     child: CircleAvatar(
                       radius: 20,
-                      backgroundImage: NetworkImage(user.avatarUrl),
+                      backgroundImage: user.avatarUrl.isEmpty ? null : NetworkImage(user.avatarUrl),
                       backgroundColor: AppColors.primaryLight.withOpacity(0.1),
+                      child: user.avatarUrl.isEmpty
+                          ? Text(user.name.trim().isEmpty ? '?' : user.name.trim()[0].toUpperCase())
+                          : null,
                     ),
                   ),
                 ],
@@ -367,7 +372,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         _buildStatCard('Questions Solved', '${user.questionsSolved}', Icons.assignment_outlined, AppColors.primaryLight),
         _buildStatCard('Doubts Asked', '${user.doubtsAsked}', Icons.question_answer_outlined, AppColors.secondaryLight),
         _buildStatCard('Daily Streak', '${user.streakDays} days', Icons.local_fire_department, Colors.orange),
-        _buildStatCard('Accuracy Rate', '${(user.accuracyRate * 100).toStringAsFixed(0)}%', Icons.track_changes_outlined, AppColors.success),
+        _buildStatCard('Demo accuracy', '${(user.accuracyRate * 100).toStringAsFixed(0)}%', Icons.track_changes_outlined, AppColors.success),
       ],
     );
   }
@@ -458,10 +463,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Recent doubts cards
   Widget _buildRecentDoubts(bool isDark) {
-    final doubtService = ref.read(doubtServiceProvider);
-    
     return FutureBuilder<List<Doubt>>(
-      future: doubtService.getDoubtHistory(),
+      future: _recentDoubtsFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));

@@ -5,8 +5,8 @@
 *.swp
 .DS_Store
 .atom/
-.build/
-.buildlog/
+**/.build/
+**/.buildlog/
 .history
 .svn/
 .swiftpm/
@@ -31,6 +31,16 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+**/backend/api/dist/
+**/backend/api/coverage/
+**/ml-service/.venv/
+**/ml-service/__pycache__/
+.env
+.env.*
+!.env.example
+node_modules/
+.npm-cache/
+*.pid
 /coverage/
 
 # Symbolication related
