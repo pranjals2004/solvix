@@ -6,6 +6,7 @@
   ],
   "scripts": {
     "dev:api": "npm --workspace @solvix/api run dev",
+    "dev:worker": "npm --workspace @solvix/api run dev:worker",
     "build": "npm --workspace @solvix/api run build",
     "test": "npm --workspace @solvix/api test",
     "lint": "npm --workspace @solvix/api run lint",

@@ -15,6 +15,7 @@ Run these from the repository root unless noted:
 | Install ML dependencies | `python -m pip install -r ml-service/requirements.txt` |
 | Install Flutter dependencies | `flutter pub get` |
 | Run API in development | `npm run dev:api` |
+| Run doubt worker in development | `npm run dev:worker` |
 | Build API | `npm run build` |
 | Run API tests | `npm test` |
 | Lint API | `npm run lint` |
@@ -34,6 +35,7 @@ Use Node.js 20, Flutter/Dart versions declared by the Flutter package, and Pytho
 - Keep public question serializers free of answer keys and worked solutions; reserve those for admin routes and the later submission flow.
 - Generate embeddings through the ML service only. Never substitute canned vectors for failed production embedding calls.
 - Keep API and worker processes separate. The worker must not be started as an API side effect.
+- Doubt requests use a Redis-backed BullMQ queue and remain pollable at `GET /api/v1/doubts/:id`; Socket.IO only delivers updates to the authenticated user's room.
 - Route all model calls through the provider interface; tests must use deterministic mocks.
 - Label synthetic/demo data and never invent evaluation metrics.
 - Add focused tests for core behavior and update `docs/DECISIONS.md` when resolving a material ambiguity.

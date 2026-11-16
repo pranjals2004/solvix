@@ -12,6 +12,8 @@ import { createAuthRouter } from './http/auth';
 import { HttpError } from './http/errors';
 import { createRateLimit } from './http/rate-limit';
 import type { RedisService } from './infra/redis';
+import { createDoubtRouter } from './doubts/routes';
+import type { DoubtQueue, DoubtRepository, PrivateObjectStorage } from './doubts/types';
 
 export type AppDependencies = {
   repository: AuthRepository;
@@ -19,6 +21,9 @@ export type AppDependencies = {
   config: AppConfig;
   contentService?: ContentService;
   submissionRepository?: SubmissionRepository;
+  doubtRepository?: DoubtRepository;
+  doubtQueue?: DoubtQueue;
+  objectStorage?: PrivateObjectStorage;
 };
 
 export function createApp(dependencies: AppDependencies) {
@@ -80,6 +85,15 @@ export function createApp(dependencies: AppDependencies) {
   }
   if (dependencies.submissionRepository) {
     app.use('/api/v1', createPracticeRouter(dependencies.submissionRepository, dependencies.redis, dependencies.config));
+  }
+  if (dependencies.doubtRepository && dependencies.doubtQueue && dependencies.objectStorage) {
+    app.use('/api/v1', createDoubtRouter({
+      repository: dependencies.doubtRepository,
+      queue: dependencies.doubtQueue,
+      storage: dependencies.objectStorage,
+      redis: dependencies.redis,
+      config: dependencies.config,
+    }));
   }
   app.use((_request, response) => {
     response.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found.' } });

@@ -31,6 +31,12 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Solvix uses the camera so you can attach handwritten work to a GATE CS doubt.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Solvix connects to your local development API and upload service during testing.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Solvix uses selected photos so you can attach handwritten work to a GATE CS doubt.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

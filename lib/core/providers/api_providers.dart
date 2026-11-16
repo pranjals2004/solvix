@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gate_resolver/data/models/api_content.dart';
 import 'package:gate_resolver/data/models/auth_session.dart';
 import 'package:gate_resolver/services/api_client.dart';
+import 'package:gate_resolver/services/doubt_api.dart';
 
 final tokenStoreProvider = Provider<TokenStore>(
   (ref) => const SecureTokenStore(),
@@ -36,6 +37,9 @@ final authApiProvider = Provider<AuthApi>(
 );
 final solvixApiProvider = Provider<SolvixApi>(
   (ref) => SolvixApi(ref.watch(dioProvider)),
+);
+final doubtApiProvider = Provider<DoubtApi>(
+  (ref) => DoubtApi(ref.watch(dioProvider), ref.watch(tokenStoreProvider)),
 );
 
 class AuthController extends StateNotifier<AsyncValue<AuthSession?>> {

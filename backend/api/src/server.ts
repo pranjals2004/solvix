@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import { createServer } from 'node:http';
 import dotenv from 'dotenv';
 import { createApp } from './app';
 import { loadConfig } from './config/env';
@@ -9,6 +10,11 @@ import { PostgresContentRepository } from './db/content-repository';
 import { MlServiceEmbeddingClient } from './content/embedding-client';
 import { ContentService } from './content/service';
 import { PostgresSubmissionRepository } from './db/submission-repository';
+import { PostgresDoubtRepository } from './db/doubt-repository';
+import { BullDoubtQueue } from './doubts/queue';
+import { S3PrivateObjectStorage } from './doubts/storage';
+import { attachSocketServer } from './realtime/socket-server';
+import type { Server as SocketServer } from 'socket.io';
 
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
@@ -16,7 +22,9 @@ async function start() {
   const config = loadConfig();
   const pool = createPool(config.databaseUrl);
   const redis = new IoredisService(config.redisUrl);
-  let server: ReturnType<ReturnType<typeof createApp>['listen']> | undefined;
+  const queue = new BullDoubtQueue(config.redisUrl);
+  let server: ReturnType<typeof createServer> | undefined;
+  let socketServer: SocketServer | undefined;
 
   try {
     if (config.nodeEnv !== 'test') await redis.connect();
@@ -27,22 +35,29 @@ async function start() {
       config,
       contentService: new ContentService(contentRepository, new MlServiceEmbeddingClient(config.mlServiceUrl)),
       submissionRepository: new PostgresSubmissionRepository(pool),
+      doubtRepository: new PostgresDoubtRepository(pool),
+      doubtQueue: queue,
+      objectStorage: new S3PrivateObjectStorage(config),
     });
-    server = app.listen(config.port, () => {
+    server = createServer(app);
+    socketServer = attachSocketServer(server, config, redis);
+    server.listen(config.port, () => {
       process.stdout.write(`Solvix API listening on port ${config.port}\n`);
     });
   } catch (error) {
     process.stderr.write(`Solvix API startup failed: ${String(error)}\n`);
-    await Promise.allSettled([pool.end(), redis.close()]);
+    await Promise.allSettled([pool.end(), redis.close(), queue.close()]);
     process.exitCode = 1;
     return;
   }
 
   const shutdown = (signal: string) => {
     process.stdout.write(`Received ${signal}; closing services.\n`);
-    server?.close(() => {
-      void Promise.allSettled([pool.end(), redis.close()]);
-    });
+    const closeDependencies = () => {
+      void Promise.allSettled([pool.end(), redis.close(), queue.close()]);
+    };
+    if (socketServer) socketServer.close(closeDependencies);
+    else server?.close(closeDependencies);
   };
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGTERM', () => shutdown('SIGTERM'));

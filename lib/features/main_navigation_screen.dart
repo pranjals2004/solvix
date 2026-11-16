@@ -4,6 +4,7 @@ import 'package:gate_resolver/data/models/auth_session.dart';
 import 'package:gate_resolver/features/home/screens/student_home_screen.dart';
 import 'package:gate_resolver/features/profile/screens/profile_screen.dart';
 import 'package:gate_resolver/features/study/screens/study_screen.dart';
+import 'package:gate_resolver/features/doubt/screens/doubt_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({required this.session, super.key});
@@ -26,6 +27,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         onStudy: () => setState(() => _currentIndex = 1),
       ),
       const StudyScreen(),
+      const DoubtScreen(),
       ProfileScreen(session: widget.session),
     ];
 
@@ -46,6 +48,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             icon: Icon(Icons.menu_book_outlined),
             selectedIcon: Icon(Icons.menu_book),
             label: 'Study',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.auto_awesome_outlined),
+            selectedIcon: Icon(Icons.auto_awesome),
+            label: 'Doubts',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

@@ -24,3 +24,12 @@
 - **Add the minimal submission endpoint alongside the Flutter attempt flow.** Content question reads intentionally omit answers, so the client must submit an authenticated attempt to receive grading and the worked solution. Confidence and time are recorded now; ranking and rating updates remain assigned to their later phases.
 - **Store the access token with platform secure storage.** This preserves a signed-in session across app restarts without putting the JWT in ordinary preferences.
 - **Keep the research preview screens out of the signed-in navigation until their API phases are implemented.** The Phase 3 home and profile avoid presenting the earlier UI prototype's synthetic progress figures as account data.
+
+## Phase 4
+
+- **Use an `Idempotency-Key` request header for initial doubt submission.** The key is unique per user and maps to one persistent doubt row; the UUID row id is also the BullMQ job id. Follow-up messages accept a client message UUID and use a separate deterministic queue id.
+- **Keep image keys user-prefixed and private.** Uploads are JPEG, PNG, or WebP, limited to 5 MB, signed for five minutes, and revalidated from object metadata by the worker before vision processing.
+- **Keep the ML service as the only embedding implementation.** The worker retrieves three context chunks from pgvector, with the linked question solution and same-topic chunks preferred before global semantic matches.
+- **Use provider-specific REST adapters behind one `LLMProvider` interface.** Gemini remains the default, and a deterministic mock is used unless `LLM_MODE=live` is explicitly selected.
+- **Allow one follow-up request at a time.** This keeps each stateless LLM request's full conversation history ordered and prevents concurrent completions from overwriting one another.
+- **Separate the object's private and signed-upload addresses.** The API and worker use `S3_ENDPOINT`; presigned phone uploads use `S3_PUBLIC_ENDPOINT` so Android emulator, iOS simulator, and physical-device routing can be configured without exposing private worker traffic.

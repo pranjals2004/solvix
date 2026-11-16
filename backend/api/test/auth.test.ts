@@ -16,6 +16,8 @@ const config: AppConfig = {
   jwtAccessTtl: '15m',
   bcryptRounds: 4,
   corsOrigins: ['http://localhost:3000'],
+  s3Endpoint: 'http://localhost:9000', s3PublicEndpoint: 'http://10.0.2.2:9000', s3Region: 'us-east-1', s3Bucket: 'test',
+  s3AccessKey: 'test-key', s3SecretKey: 'test-secret',
 };
 
 class MemoryRepository implements AuthRepository {
