@@ -187,9 +187,9 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
                         ? null
                         : () => setState(() {
                             if (_isMultipleChoice) {
-                        if (!_selectedOptions.add(index)) {
+                              if (!_selectedOptions.add(index)) {
                                 _selectedOptions.remove(index);
-                        }
+                              }
                             } else {
                               _singleChoice = index;
                             }
@@ -374,6 +374,31 @@ class _ResultCard extends StatelessWidget {
             Text(
               'Confidence recorded: $confidence / 5',
               style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.leaderboard_outlined, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    result.countedForRank
+                        ? 'Counted toward this week’s leaderboard.'
+                        : switch (result.rankExclusionReason) {
+                            'too_fast' =>
+                              'Correct, but attempts under 10 seconds do not count toward the leaderboard.',
+                            'already_counted' =>
+                              'This question was already counted for you this week.',
+                            'incorrect' =>
+                              'Incorrect attempts do not count toward the leaderboard.',
+                            _ =>
+                              'This attempt did not change your weekly leaderboard count.',
+                          },
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
             ),
             const Divider(height: 24),
             Text(

@@ -4,6 +4,7 @@ import 'package:gate_resolver/data/models/api_content.dart';
 import 'package:gate_resolver/data/models/auth_session.dart';
 import 'package:gate_resolver/services/api_client.dart';
 import 'package:gate_resolver/services/doubt_api.dart';
+import 'package:gate_resolver/services/leaderboard_api.dart';
 
 final tokenStoreProvider = Provider<TokenStore>(
   (ref) => const SecureTokenStore(),
@@ -40,6 +41,9 @@ final solvixApiProvider = Provider<SolvixApi>(
 );
 final doubtApiProvider = Provider<DoubtApi>(
   (ref) => DoubtApi(ref.watch(dioProvider), ref.watch(tokenStoreProvider)),
+);
+final leaderboardApiProvider = Provider<LeaderboardApi>(
+  (ref) => LeaderboardApi(ref.watch(dioProvider)),
 );
 
 class AuthController extends StateNotifier<AsyncValue<AuthSession?>> {

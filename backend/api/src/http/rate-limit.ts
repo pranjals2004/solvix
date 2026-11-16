@@ -10,7 +10,12 @@ export function createRateLimit(
   const store = options.enabled
     ? new RedisStore({
         prefix: `${options.keyPrefix}:`,
-        sendCommand: (...args) => redis.sendCommand(...args),
+        sendCommand: async (...args) => {
+          const result = await redis.sendCommand(...args);
+          if (result === null) return 0;
+          if (Array.isArray(result)) return result.map(String);
+          return typeof result === 'boolean' ? Number(result) : result;
+        },
       })
     : undefined;
 

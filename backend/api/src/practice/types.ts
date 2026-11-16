@@ -12,6 +12,9 @@ export type SubmissionResult = {
   isCorrect: boolean;
   solutionLatex: string;
   attemptNo: number;
+  countedForRank: boolean;
+  leaderboardWeekStart: string | null;
+  rankExclusionReason: 'incorrect' | 'too_fast' | 'already_counted' | null;
 };
 
 export type QuestionForSubmission = {

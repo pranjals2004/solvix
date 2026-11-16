@@ -16,6 +16,7 @@ Run these from the repository root unless noted:
 | Install Flutter dependencies | `flutter pub get` |
 | Run API in development | `npm run dev:api` |
 | Run doubt worker in development | `npm run dev:worker` |
+| Run weekly archive worker (included with doubt worker) | `npm run dev:worker` |
 | Build API | `npm run build` |
 | Run API tests | `npm test` |
 | Lint API | `npm run lint` |
@@ -36,6 +37,7 @@ Use Node.js 20, Flutter/Dart versions declared by the Flutter package, and Pytho
 - Generate embeddings through the ML service only. Never substitute canned vectors for failed production embedding calls.
 - Keep API and worker processes separate. The worker must not be started as an API side effect.
 - Doubt requests use a Redis-backed BullMQ queue and remain pollable at `GET /api/v1/doubts/:id`; Socket.IO only delivers updates to the authenticated user's room.
+- Weekly leaderboard counts are durable in PostgreSQL and projected into a timezone-specific Redis sorted set; reads reconcile the active week, and the worker archives finished weeks.
 - Route all model calls through the provider interface; tests must use deterministic mocks.
 - Label synthetic/demo data and never invent evaluation metrics.
 - Add focused tests for core behavior and update `docs/DECISIONS.md` when resolving a material ambiguity.

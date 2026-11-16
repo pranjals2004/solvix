@@ -14,6 +14,8 @@ import { createRateLimit } from './http/rate-limit';
 import type { RedisService } from './infra/redis';
 import { createDoubtRouter } from './doubts/routes';
 import type { DoubtQueue, DoubtRepository, PrivateObjectStorage } from './doubts/types';
+import { createLeaderboardRouter } from './leaderboard/routes';
+import type { WeeklyLeaderboard } from './leaderboard/types';
 
 export type AppDependencies = {
   repository: AuthRepository;
@@ -24,6 +26,7 @@ export type AppDependencies = {
   doubtRepository?: DoubtRepository;
   doubtQueue?: DoubtQueue;
   objectStorage?: PrivateObjectStorage;
+  weeklyLeaderboard?: WeeklyLeaderboard;
 };
 
 export function createApp(dependencies: AppDependencies) {
@@ -84,7 +87,12 @@ export function createApp(dependencies: AppDependencies) {
     app.use('/api/v1', createContentRouter(dependencies.contentService, dependencies.redis, dependencies.config));
   }
   if (dependencies.submissionRepository) {
-    app.use('/api/v1', createPracticeRouter(dependencies.submissionRepository, dependencies.redis, dependencies.config));
+    app.use('/api/v1', createPracticeRouter(
+      dependencies.submissionRepository, dependencies.redis, dependencies.config, dependencies.weeklyLeaderboard,
+    ));
+  }
+  if (dependencies.weeklyLeaderboard) {
+    app.use('/api/v1', createLeaderboardRouter(dependencies.weeklyLeaderboard, dependencies.redis, dependencies.config));
   }
   if (dependencies.doubtRepository && dependencies.doubtQueue && dependencies.objectStorage) {
     app.use('/api/v1', createDoubtRouter({

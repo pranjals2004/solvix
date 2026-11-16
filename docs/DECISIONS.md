@@ -33,3 +33,11 @@
 - **Use provider-specific REST adapters behind one `LLMProvider` interface.** Gemini remains the default, and a deterministic mock is used unless `LLM_MODE=live` is explicitly selected.
 - **Allow one follow-up request at a time.** This keeps each stateless LLM request's full conversation history ordered and prevents concurrent completions from overwriting one another.
 - **Separate the object's private and signed-upload addresses.** The API and worker use `S3_ENDPOINT`; presigned phone uploads use `S3_PUBLIC_ENDPOINT` so Android emulator, iOS simulator, and physical-device routing can be configured without exposing private worker traffic.
+
+## Phase 5
+
+- **Persist one leaderboard credit per user, question, and Monday week in PostgreSQL.** The Redis sorted set is a rebuildable active-week projection, so a failed Redis update cannot lose earned credit.
+- **Count only the first correct attempt per question in a week, and require at least ten seconds.** All attempts remain in submission history; repeats and short attempts receive an explicit reason in the response.
+- **Flag an account after five sub-ten-second attempts in ten minutes.** The flag is durable and exposed through an administrator-only review endpoint; it does not automatically remove prior valid credits.
+- **Encode solved count and the time the current count was reached in the Redis score.** Counts dominate score, then reaching the count earlier ranks higher; stable user-id ordering resolves exact ties in archive output.
+- **Use BullMQ's timezone-aware weekly scheduler at Sunday 23:59.** The scheduled worker archives ranks from durable PostgreSQL rows and the next Monday week uses a separate Redis key.

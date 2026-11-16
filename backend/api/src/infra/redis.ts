@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 
-export type RedisValue = boolean | number | string;
+export type RedisValue = boolean | number | string | null;
 
 export interface RedisService {
   connect(): Promise<void>;

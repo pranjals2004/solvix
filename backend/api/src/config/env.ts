@@ -25,6 +25,7 @@ const environmentSchema = z.object({
   S3_BUCKET: z.string().default('solvix-uploads'),
   S3_ACCESS_KEY: z.string().min(1),
   S3_SECRET_KEY: z.string().min(1),
+  LEADERBOARD_TIMEZONE: z.string().min(1).default('Asia/Kolkata'),
 });
 
 export type AppConfig = {
@@ -52,6 +53,7 @@ export type AppConfig = {
   s3Bucket: string;
   s3AccessKey: string;
   s3SecretKey: string;
+  leaderboardTimezone?: string;
 };
 
 export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -90,5 +92,6 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
     s3Bucket: parsed.data.S3_BUCKET,
     s3AccessKey: parsed.data.S3_ACCESS_KEY,
     s3SecretKey: parsed.data.S3_SECRET_KEY,
+    leaderboardTimezone: parsed.data.LEADERBOARD_TIMEZONE,
   };
 }

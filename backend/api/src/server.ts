@@ -15,6 +15,8 @@ import { BullDoubtQueue } from './doubts/queue';
 import { S3PrivateObjectStorage } from './doubts/storage';
 import { attachSocketServer } from './realtime/socket-server';
 import type { Server as SocketServer } from 'socket.io';
+import { PostgresLeaderboardRepository } from './db/leaderboard-repository';
+import { RedisLeaderboardService } from './leaderboard/service';
 
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
@@ -23,6 +25,10 @@ async function start() {
   const pool = createPool(config.databaseUrl);
   const redis = new IoredisService(config.redisUrl);
   const queue = new BullDoubtQueue(config.redisUrl);
+  const leaderboardRepository = new PostgresLeaderboardRepository(pool);
+  const leaderboard = new RedisLeaderboardService(
+    leaderboardRepository, redis, config.leaderboardTimezone ?? 'Asia/Kolkata',
+  );
   let server: ReturnType<typeof createServer> | undefined;
   let socketServer: SocketServer | undefined;
 
@@ -34,10 +40,11 @@ async function start() {
       redis,
       config,
       contentService: new ContentService(contentRepository, new MlServiceEmbeddingClient(config.mlServiceUrl)),
-      submissionRepository: new PostgresSubmissionRepository(pool),
+      submissionRepository: new PostgresSubmissionRepository(pool, config.leaderboardTimezone ?? 'Asia/Kolkata'),
       doubtRepository: new PostgresDoubtRepository(pool),
       doubtQueue: queue,
       objectStorage: new S3PrivateObjectStorage(config),
+      weeklyLeaderboard: leaderboard,
     });
     server = createServer(app);
     socketServer = attachSocketServer(server, config, redis);

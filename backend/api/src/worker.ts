@@ -11,6 +11,11 @@ import { createLLMProvider } from './doubts/llm-provider';
 import { DoubtResolver } from './doubts/resolver';
 import { DOUBT_QUEUE_NAME } from './doubts/queue';
 import { RedisDoubtEmitter } from './realtime/redis-emitter';
+import { PostgresLeaderboardRepository } from './db/leaderboard-repository';
+import { RedisLeaderboardService } from './leaderboard/service';
+import { BullLeaderboardQueue, LEADERBOARD_QUEUE_NAME } from './leaderboard/queue';
+import { weekStartFor } from './leaderboard/week';
+import { IoredisService } from './infra/redis';
 
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
@@ -19,6 +24,11 @@ async function startWorker() {
   const pool = createPool(config.databaseUrl);
   const repository = new PostgresDoubtRepository(pool);
   const emitter = new RedisDoubtEmitter(config.redisUrl);
+  const leaderboardRedis = new IoredisService(config.redisUrl);
+  await leaderboardRedis.connect();
+  const leaderboardService = new RedisLeaderboardService(
+    new PostgresLeaderboardRepository(pool), leaderboardRedis, config.leaderboardTimezone ?? 'Asia/Kolkata',
+  );
   const resolver = new DoubtResolver(
     repository,
     new MlServiceEmbeddingClient(config.mlServiceUrl),
@@ -31,6 +41,23 @@ async function startWorker() {
     async (job) => resolver.resolve(job.data.doubtId),
     { connection: new Redis(config.redisUrl, { maxRetriesPerRequest: null }) },
   );
+  const archiveQueue = new BullLeaderboardQueue(config.redisUrl);
+  await archiveQueue.scheduleWeeklyArchive(config.leaderboardTimezone ?? 'Asia/Kolkata');
+  const archiveWorker = new Worker(
+    LEADERBOARD_QUEUE_NAME,
+    async (job) => {
+      if (job.name !== 'archive-week') return;
+      const scheduledAt = job.opts.prevMillis ?? job.timestamp;
+      const weekStart = weekStartFor(new Date(scheduledAt), config.leaderboardTimezone ?? 'Asia/Kolkata');
+      await leaderboardService.finalizeWeek(weekStart);
+    },
+    { connection: new Redis(config.redisUrl, { maxRetriesPerRequest: null }) },
+  );
+  archiveWorker.on('error', (error) => process.stderr.write(`Leaderboard archive worker error: ${error.message}\n`));
+  archiveWorker.on('failed', (job, error) => {
+    process.stderr.write(`Leaderboard archive ${job?.id ?? 'unknown'} failed: ${error.message}\n`);
+  });
+  archiveWorker.on('ready', () => process.stdout.write('Solvix leaderboard archive schedule is ready.\n'));
   worker.on('failed', (job, error) => {
     if (!job || job.attemptsMade < (job.opts.attempts ?? 1)) return;
     process.stderr.write(`Doubt job ${job.id ?? job.data.doubtId} exhausted retries: ${error.message}\n`);
@@ -41,7 +68,9 @@ async function startWorker() {
 
   const shutdown = async (signal: string) => {
     process.stdout.write(`Received ${signal}; closing doubt worker.\n`);
-    await Promise.allSettled([worker.close(), pool.end(), emitter.close()]);
+    await Promise.allSettled([
+      worker.close(), archiveWorker.close(), archiveQueue.close(), pool.end(), emitter.close(), leaderboardRedis.close(),
+    ]);
   };
   process.on('SIGINT', () => void shutdown('SIGINT'));
   process.on('SIGTERM', () => void shutdown('SIGTERM'));

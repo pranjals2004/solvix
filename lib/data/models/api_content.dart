@@ -74,16 +74,25 @@ class SubmissionResult {
     required this.isCorrect,
     required this.solutionLatex,
     required this.attemptNo,
+    this.countedForRank = false,
+    this.leaderboardWeekStart,
+    this.rankExclusionReason,
   });
 
   final bool isCorrect;
   final String solutionLatex;
   final int attemptNo;
+  final bool countedForRank;
+  final String? leaderboardWeekStart;
+  final String? rankExclusionReason;
 
   factory SubmissionResult.fromJson(Map<String, dynamic> json) =>
       SubmissionResult(
         isCorrect: json['isCorrect'] as bool,
         solutionLatex: json['solutionLatex'] as String,
         attemptNo: json['attemptNo'] as int,
+        countedForRank: json['countedForRank'] as bool? ?? false,
+        leaderboardWeekStart: json['leaderboardWeekStart'] as String?,
+        rankExclusionReason: json['rankExclusionReason'] as String?,
       );
 }

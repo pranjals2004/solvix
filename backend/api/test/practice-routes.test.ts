@@ -35,7 +35,10 @@ describe('submission endpoint', () => {
         submit: async (submittedUserId, input) => {
           expect(submittedUserId).toBe(userId);
           received = { confidence: input.confidence, timeTakenSec: input.timeTakenSec };
-          return { isCorrect: true, solutionLatex: 'Worked solution.', attemptNo: 1 };
+          return {
+            isCorrect: true, solutionLatex: 'Worked solution.', attemptNo: 1,
+            countedForRank: true, leaderboardWeekStart: '2026-11-16', rankExclusionReason: null,
+          };
         },
       },
     });
@@ -63,6 +66,35 @@ describe('submission endpoint', () => {
       isCorrect: true,
       solutionLatex: 'Worked solution.',
       attemptNo: 1,
+      countedForRank: true,
+      leaderboardWeekStart: '2026-11-16',
+      rankExclusionReason: null,
     });
+  });
+
+  it('returns the reason when a correct attempt is too fast to count', async () => {
+    const userId = randomUUID();
+    const questionId = randomUUID();
+    const app = createApp({
+      repository: {} as AuthRepository,
+      redis: { get: async () => null } as unknown as RedisService,
+      config,
+      submissionRepository: {
+        submit: async () => ({
+          isCorrect: true, solutionLatex: 'Solution.', attemptNo: 2,
+          countedForRank: false, leaderboardWeekStart: null, rankExclusionReason: 'too_fast',
+        }),
+      },
+    });
+    const token = jwt.sign(
+      { role: 'student', arm: 'conf_elo' }, config.jwtSecret,
+      { algorithm: 'HS256', subject: userId, jwtid: randomUUID(), issuer: config.jwtIssuer, expiresIn: '15m' },
+    );
+    const response = await request(app).post('/api/v1/submissions')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ questionId, answer: 'A', timeTakenSec: 3, confidence: 4 })
+      .expect(201);
+    expect(response.body.submission.countedForRank).toBe(false);
+    expect(response.body.submission.rankExclusionReason).toBe('too_fast');
   });
 });

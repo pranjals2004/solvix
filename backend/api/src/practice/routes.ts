@@ -6,11 +6,13 @@ import { createRequireAuth } from '../http/auth';
 import { HttpError } from '../http/errors';
 import type { SubmissionRepository } from './types';
 import { submissionInputSchema } from './schemas';
+import type { WeeklyLeaderboard } from '../leaderboard/types';
 
 export function createPracticeRouter(
   repository: SubmissionRepository,
   redis: RedisService,
   config: AppConfig,
+  leaderboard?: WeeklyLeaderboard,
 ): Router {
   const router = Router();
   router.use(createRequireAuth(redis, config));
@@ -23,7 +25,24 @@ export function createPracticeRouter(
     if (!request.auth) throw new HttpError(401, 'UNAUTHENTICATED', 'A valid access token is required.');
     const result = await repository.submit(request.auth.userId, parsed.data);
     if (!result) throw new HttpError(404, 'NOT_FOUND', 'Question not found.');
-    response.status(201).json({ submission: result });
+    if (result.countedForRank && result.leaderboardWeekStart && leaderboard) {
+      try {
+        await leaderboard.recordCount(request.auth.userId, result.leaderboardWeekStart);
+      } catch {
+        // PostgreSQL keeps the durable weekly count; the next leaderboard read repairs Redis.
+        process.stderr.write('Leaderboard projection update deferred; weekly read will reconcile it.\n');
+      }
+    }
+    response.status(201).json({
+      submission: {
+        isCorrect: result.isCorrect,
+        solutionLatex: result.solutionLatex,
+        attemptNo: result.attemptNo,
+        countedForRank: result.countedForRank,
+        leaderboardWeekStart: result.leaderboardWeekStart,
+        rankExclusionReason: result.rankExclusionReason,
+      },
+    });
   }));
   return router;
 }
