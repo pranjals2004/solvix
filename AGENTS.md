@@ -2,7 +2,7 @@
 
 ## Architecture
 
-Solvix is a monorepo for GATE CS/IT adaptive learning. The existing Flutter client remains at the repository root so its current IDE and platform setup keep working. `backend/api` contains the Express TypeScript API and the separately launched BullMQ worker entrypoint. `ml-service` contains the Python FastAPI service. PostgreSQL with pgvector, Redis, and MinIO run locally through Docker Compose. Shared product decisions and API notes live in `docs/`.
+Solvix is a monorepo for GATE CS/IT adaptive learning. The existing Flutter client remains at the repository root so its current IDE and platform setup keep working. `backend/api` contains the Express TypeScript API and the separately launched BullMQ worker entrypoint. `ml-service` contains the Python FastAPI service. PostgreSQL with pgvector, Redis, and MinIO-compatible S3 storage (Silo) run locally through Docker Compose. Shared product decisions and API notes live in `docs/`.
 
 ## Commands
 

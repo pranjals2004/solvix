@@ -6,7 +6,7 @@ Solvix is an AI-assisted adaptive learning platform for GATE Computer Science an
 
 1. Install Node.js 20, Flutter, Python 3.11, and Docker Compose.
 2. Copy `.env.example` to `.env` and adjust local values if needed.
-3. Start PostgreSQL with pgvector, Redis, and MinIO: `docker compose up -d`.
+3. Start PostgreSQL with pgvector, Redis, and local MinIO-compatible S3 storage (Silo): `docker compose up -d`.
 4. Install API dependencies: `npm install`.
 5. Install ML dependencies: `python -m pip install -r ml-service/requirements.txt`.
 6. Apply schema migrations: `npm run db:migrate`.
