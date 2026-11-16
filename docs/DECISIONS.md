@@ -58,3 +58,7 @@
 - **Only completed clusters with a human label and a current user tag are surfaced to that student.** New cluster labels always begin empty and require admin review.
 - **Run clustering each Monday at 02:00 in `LEADERBOARD_TIMEZONE` and expose an admin-only manual queue trigger.** Topic runs are transactionally replaced on retry using a stable run ID.
 - **Export only cluster labels and aggregate counts.** Share of doubt volume uses cluster size divided by the number of doubts processed in that topic's latest run; no student identifiers or raw text are exported.
+
+## Local infrastructure follow-up
+
+- **Use the maintained `pgsty/silo` image for local S3-compatible storage.** The former `minio/minio` and `minio/mc` image references are no longer pullable; Silo preserves the MinIO S3 API, `MINIO_*` settings, health route, and local data format. The compose initializer uses Silo's bundled `mcli` client. The service remains named `minio` so application endpoints and local configuration do not change.
