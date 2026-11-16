@@ -5,6 +5,9 @@ import { loadConfig } from './config/env';
 import { PostgresAuthRepository } from './db/auth-repository';
 import { createPool } from './db/pool';
 import { IoredisService } from './infra/redis';
+import { PostgresContentRepository } from './db/content-repository';
+import { MlServiceEmbeddingClient } from './content/embedding-client';
+import { ContentService } from './content/service';
 
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
@@ -16,7 +19,13 @@ async function start() {
 
   try {
     if (config.nodeEnv !== 'test') await redis.connect();
-    const app = createApp({ repository: new PostgresAuthRepository(pool), redis, config });
+    const contentRepository = new PostgresContentRepository(pool);
+    const app = createApp({
+      repository: new PostgresAuthRepository(pool),
+      redis,
+      config,
+      contentService: new ContentService(contentRepository, new MlServiceEmbeddingClient(config.mlServiceUrl)),
+    });
     server = app.listen(config.port, () => {
       process.stdout.write(`Solvix API listening on port ${config.port}\n`);
     });

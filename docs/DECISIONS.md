@@ -10,3 +10,11 @@
 - **Assign experiment arms under a transaction-scoped advisory lock.** Choosing the least populated arm while holding this lock produces balanced signup assignment under concurrent registration.
 - **Treat the local `.env.example` values as disposable local-only values.** No production credential belongs in the repository; `.env` is ignored.
 - **Represent consent at account creation.** Registration rejects absent consent, and stores the timestamp with the account.
+
+## Phase 2
+
+- **Keep note bodies separate from retrieval chunks.** `notes` stores the original content returned to the viewer; `note_chunks` stores overlapping chunks and embeddings for retrieval. Question solutions use `note_chunks` with `source_type = 'solution'`.
+- **Chunk long source content at 1,200 characters with 150 characters of overlap.** This is a simple deterministic baseline that keeps source ordering and avoids introducing another content-processing dependency.
+- **Require the ML service for writes that create retrieval content.** If embeddings are unavailable or malformed, the API rejects the write/import instead of persisting content that cannot be retrieved. No synthetic vectors are used.
+- **Use slugs for CSV imports and UUIDs for JSON imports.** CSV stays readable for spreadsheet editing, while JSON can preserve stable database IDs for repeatable imports.
+- **Label seed questions as synthetic placeholders.** They demonstrate question types and subject/topic setup, but are not represented as authentic GATE questions or research results.

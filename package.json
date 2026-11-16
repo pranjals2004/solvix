@@ -9,6 +9,7 @@
     "build": "npm --workspace @solvix/api run build",
     "test": "npm --workspace @solvix/api test",
     "lint": "npm --workspace @solvix/api run lint",
-    "db:migrate": "npm --workspace @solvix/api run db:migrate"
+    "db:migrate": "npm --workspace @solvix/api run db:migrate",
+    "db:seed": "npm --workspace @solvix/api run db:seed"
   }
 }

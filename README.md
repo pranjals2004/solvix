@@ -8,11 +8,14 @@ Solvix is an AI-assisted adaptive learning platform for GATE Computer Science an
 2. Copy `.env.example` to `.env` and adjust local values if needed.
 3. Start PostgreSQL with pgvector, Redis, and MinIO: `docker compose up -d`.
 4. Install API dependencies: `npm install`.
-5. Apply schema migrations: `npm run db:migrate`.
-6. Start the API: `npm run dev:api`.
-7. In another terminal, run the Flutter app from the repository root with `flutter run`.
+5. Install ML dependencies: `python -m pip install -r ml-service/requirements.txt`.
+6. Apply schema migrations: `npm run db:migrate`.
+7. Start the ML service in another terminal: `python -m uvicorn main:app --reload --app-dir ml-service`.
+8. Optionally add clearly labelled sample questions: `npm run db:seed`.
+9. Start the API: `npm run dev:api`.
+10. In another terminal, run the Flutter app from the repository root with `flutter run`.
 
-The API health check is available at `http://localhost:3000/health`; readiness is at `/ready`. API details are in [docs/API.md](docs/API.md), and implementation decisions are in [docs/DECISIONS.md](docs/DECISIONS.md).
+The API health check is available at `http://localhost:3000/health`; readiness is at `/ready`. API details are in [docs/API.md](docs/API.md), content templates are in [content/templates](content/templates), and implementation decisions are in [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## Checks
 

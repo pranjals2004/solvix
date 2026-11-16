@@ -6,6 +6,7 @@ import { z } from 'zod';
 import type { AppConfig } from '../config/env';
 import type { AuthRepository, ExperimentArm, UserRecord, UserRole } from '../domain/user';
 import type { RedisService } from '../infra/redis';
+import { asyncRoute } from './async-route';
 import { HttpError, isUniqueViolation } from './errors';
 
 const registerSchema = z.object({
@@ -176,10 +177,4 @@ function isRole(value: unknown): value is UserRole {
 
 function isArm(value: unknown): value is ExperimentArm {
   return value === 'random' || value === 'standard_elo' || value === 'conf_elo';
-}
-
-function asyncRoute(handler: RequestHandler): RequestHandler {
-  return (request, response, next) => {
-    Promise.resolve(handler(request, response, next)).catch(next);
-  };
 }

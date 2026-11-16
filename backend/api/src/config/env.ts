@@ -10,6 +10,7 @@ const environmentSchema = z.object({
   JWT_ACCESS_TTL: z.string().regex(/^\d+[smhd]$/).default('15m'),
   BCRYPT_ROUNDS: z.coerce.number().int().min(10).max(14).default(12),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
+  ML_SERVICE_URL: z.string().url().default('http://localhost:8000'),
   LLM_MODE: z.enum(['mock', 'live']).default('mock'),
   LLM_PROVIDER: z.enum(['gemini', 'anthropic', 'openai']).default('gemini'),
   GEMINI_API_KEY: z.string().optional(),
@@ -25,6 +26,7 @@ export type AppConfig = {
   jwtAccessTtl: string;
   bcryptRounds: number;
   corsOrigins: string[];
+  mlServiceUrl: string;
 };
 
 export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -48,5 +50,6 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
     corsOrigins: parsed.data.CORS_ORIGINS.split(',')
       .map((origin) => origin.trim())
       .filter(Boolean),
+    mlServiceUrl: parsed.data.ML_SERVICE_URL,
   };
 }

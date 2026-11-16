@@ -12,11 +12,13 @@ Run these from the repository root unless noted:
 | --- | --- |
 | Start local infrastructure | Copy `.env.example` to `.env`, then `docker compose up -d` |
 | Install API dependencies | `npm install` |
+| Install ML dependencies | `python -m pip install -r ml-service/requirements.txt` |
 | Run API in development | `npm run dev:api` |
 | Build API | `npm run build` |
 | Run API tests | `npm test` |
 | Lint API | `npm run lint` |
 | Apply database migrations | `npm run db:migrate` |
+| Seed clearly labelled sample content | Start the ML service, then `npm run db:seed` |
 | Run Flutter app | From the repository root, run `flutter run` |
 | Test Flutter app | `flutter test` |
 | Analyze Flutter app | `flutter analyze --no-fatal-infos` |
@@ -28,6 +30,8 @@ Use Node.js 20, Flutter/Dart versions declared by the Flutter package, and Pytho
 
 - Keep HTTP handlers thin; validate input with Zod and put persistence behind small repository interfaces.
 - Keep database changes in ordered SQL migrations under `backend/api/src/db/migrations`.
+- Keep public question serializers free of answer keys and worked solutions; reserve those for admin routes and the later submission flow.
+- Generate embeddings through the ML service only. Never substitute canned vectors for failed production embedding calls.
 - Keep API and worker processes separate. The worker must not be started as an API side effect.
 - Route all model calls through the provider interface; tests must use deterministic mocks.
 - Label synthetic/demo data and never invent evaluation metrics.

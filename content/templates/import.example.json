@@ -1,0 +1,25 @@
+{
+  "questions": [
+    {
+      "subjectId": "00000000-0000-4000-8000-000000000001",
+      "topicId": "00000000-0000-4000-8000-000000000002",
+      "type": "mcq",
+      "statementLatex": "Reviewed question statement in LaTeX",
+      "optionsJson": ["Option A", "Option B"],
+      "correctAnswerJson": { "selected": "A" },
+      "natTolerance": null,
+      "solutionLatex": "Reviewed worked solution in LaTeX",
+      "isPyq": false,
+      "pyqYear": null,
+      "difficultyRating": 1000
+    }
+  ],
+  "notes": [
+    {
+      "subjectId": "00000000-0000-4000-8000-000000000001",
+      "topicId": "00000000-0000-4000-8000-000000000002",
+      "title": "Note title",
+      "content": "Reviewed note content, optionally including LaTeX."
+    }
+  ]
+}
