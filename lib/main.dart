@@ -2,15 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gate_resolver/core/theme/app_theme.dart';
 import 'package:gate_resolver/core/providers/providers.dart';
-import 'package:gate_resolver/features/main_navigation_screen.dart';
+import 'package:gate_resolver/features/auth/auth_gate.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const ProviderScope(
-      child: GateResolverApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: GateResolverApp()));
 }
 
 class GateResolverApp extends ConsumerWidget {
@@ -21,12 +17,12 @@ class GateResolverApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
-      title: 'GATE Resolver',
+      title: 'Solvix',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: const MainNavigationScreen(),
+      home: const AuthGate(),
     );
   }
 }

@@ -1,170 +1,262 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gate_resolver/core/constants/app_colors.dart';
-import 'package:gate_resolver/core/widgets/custom_widgets.dart';
-import 'package:gate_resolver/core/providers/providers.dart';
-import 'package:gate_resolver/data/models/subject.dart';
-import 'package:gate_resolver/features/study/screens/subject_detail_screen.dart';
+import 'package:gate_resolver/core/providers/api_providers.dart';
+import 'package:gate_resolver/core/widgets/math_text.dart';
+import 'package:gate_resolver/data/models/api_content.dart';
+import 'package:gate_resolver/features/study/screens/question_attempt_screen.dart';
+import 'package:gate_resolver/services/api_client.dart';
 
-class StudyScreen extends ConsumerStatefulWidget {
-  const StudyScreen({Key? key}) : super(key: key);
-
-  @override
-  ConsumerState<StudyScreen> createState() => _StudyScreenState();
-}
-
-class _StudyScreenState extends ConsumerState<StudyScreen> {
-  List<Subject> _subjects = [];
-  bool _isLoading = true;
+class StudyScreen extends ConsumerWidget {
+  const StudyScreen({super.key});
 
   @override
-  void initState() {
-    super.initState();
-    _loadSubjects();
-  }
-
-  void _loadSubjects() async {
-    final studyService = ref.read(studyServiceProvider);
-    final results = await studyService.getSubjects();
-    if (mounted) {
-      setState(() {
-        _subjects = results;
-        _isLoading = false;
-      });
-    }
-  }
-
-  // Define subjects that aren't populated fully in the mock data,
-  // to make the grid look extensive and cover all GATE requirements.
-  final List<Map<String, dynamic>> _allGateSubjects = [
-    {'id': 'sub_cn', 'name': 'Computer Networks', 'defaultProgress': 0.72, 'defaultSolved': 34, 'topicsCount': 11},
-    {'id': 'sub_db', 'name': 'DBMS', 'defaultProgress': 0.61, 'defaultSolved': 25, 'topicsCount': 8},
-    {'id': 'sub_os', 'name': 'Operating Systems', 'defaultProgress': 0.54, 'defaultSolved': 18, 'topicsCount': 9},
-    {'id': 'sub_algo', 'name': 'Algorithms', 'defaultProgress': 0.48, 'defaultSolved': 42, 'topicsCount': 10},
-    {'id': 'sub_ds', 'name': 'Data Structures', 'defaultProgress': 0.65, 'defaultSolved': 30, 'topicsCount': 7},
-    {'id': 'sub_dl', 'name': 'Digital Logic', 'defaultProgress': 0.80, 'defaultSolved': 15, 'topicsCount': 6},
-    {'id': 'sub_toc', 'name': 'TOC', 'defaultProgress': 0.42, 'defaultSolved': 20, 'topicsCount': 8},
-    {'id': 'sub_cd', 'name': 'Compiler Design', 'defaultProgress': 0.35, 'defaultSolved': 12, 'topicsCount': 7},
-    {'id': 'sub_coa', 'name': 'Computer Organization', 'defaultProgress': 0.30, 'defaultSolved': 8, 'topicsCount': 10},
-    {'id': 'sub_em', 'name': 'Engineering Mathematics', 'defaultProgress': 0.50, 'defaultSolved': 22, 'topicsCount': 9},
-    {'id': 'sub_ga', 'name': 'General Aptitude', 'defaultProgress': 0.85, 'defaultSolved': 45, 'topicsCount': 5},
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subjects = ref.watch(subjectsProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('GATE Syllabus & Studies'),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
-      body: _isLoading 
-          ? const LoadingState(title: 'Loading syllabus modules...')
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'GATE CSE Syllabus',
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text('Click on any subject to read study notes and practice previous year questions.'),
-                  const SizedBox(height: 20),
-
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.95,
+      appBar: AppBar(title: const Text('Study')),
+      body: subjects.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => _LoadError(
+          message: apiErrorMessage(error),
+          onRetry: () => ref.invalidate(subjectsProvider),
+        ),
+        data: (items) => items.isEmpty
+            ? const _EmptyContent(
+                title: 'No subjects yet',
+                message:
+                    'Content will appear here after the course topics are added.',
+                icon: Icons.menu_book_outlined,
+              )
+            : RefreshIndicator(
+                onRefresh: () => ref.refresh(subjectsProvider.future),
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    Text(
+                      'GATE CS & IT',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.primaryLight,
+                        letterSpacing: 1.1,
+                      ),
                     ),
-                    itemCount: _allGateSubjects.length,
-                    itemBuilder: (context, idx) {
-                      final item = _allGateSubjects[idx];
-                      
-                      // Match with our local list if loaded
-                      final loadedSub = _subjects.firstWhere(
-                        (s) => s.id == item['id'],
-                        orElse: () => Subject(
-                          id: item['id'],
-                          name: item['name'],
-                          questionsSolved: item['defaultSolved'],
-                          progress: item['defaultProgress'],
-                          topics: [],
+                    const SizedBox(height: 6),
+                    Text(
+                      'Choose a subject to explore its topics and practice questions.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 18),
+                    for (final subject in items) ...[
+                      Card(
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          leading: const CircleAvatar(
+                            backgroundColor: Color(0xFFE8EAF6),
+                            child: Icon(
+                              Icons.school_outlined,
+                              color: AppColors.primaryLight,
+                            ),
+                          ),
+                          title: Text(
+                            subject.name,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Text(subject.slug),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  SubjectTopicsScreen(subject: subject),
+                            ),
+                          ),
                         ),
-                      );
-
-                      return _buildSubjectCard(loadedSub, item['topicsCount'], isDark, theme);
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
+}
 
-  Widget _buildSubjectCard(Subject subject, int totalTopics, bool isDark, ThemeData theme) {
-    return AppCard(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => SubjectDetailScreen(subjectId: subject.id),
-          ),
-        ).then((_) => _loadSubjects()); // reload to reflect reading progress updates
-      },
+class SubjectTopicsScreen extends ConsumerWidget {
+  const SubjectTopicsScreen({required this.subject, super.key});
+
+  final ApiSubject subject;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final topics = ref.watch(topicsProvider(subject.id));
+    return Scaffold(
+      appBar: AppBar(title: Text(subject.name)),
+      body: topics.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => _LoadError(
+          message: apiErrorMessage(error),
+          onRetry: () => ref.invalidate(topicsProvider(subject.id)),
+        ),
+        data: (items) => items.isEmpty
+            ? const _EmptyContent(
+                title: 'No topics yet',
+                message: 'Topics for this subject have not been added yet.',
+                icon: Icons.topic_outlined,
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: items.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final topic = items[index];
+                  return Card(
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.topic_outlined,
+                        color: AppColors.primaryLight,
+                      ),
+                      title: Text(topic.name),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => TopicQuestionsScreen(
+                            subject: subject,
+                            topic: topic,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
+    );
+  }
+}
+
+class TopicQuestionsScreen extends ConsumerWidget {
+  const TopicQuestionsScreen({
+    required this.subject,
+    required this.topic,
+    super.key,
+  });
+
+  final ApiSubject subject;
+  final ApiTopic topic;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final questions = ref.watch(questionsProvider(topic.id));
+    return Scaffold(
+      appBar: AppBar(title: Text(topic.name)),
+      body: questions.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => _LoadError(
+          message: apiErrorMessage(error),
+          onRetry: () => ref.invalidate(questionsProvider(topic.id)),
+        ),
+        data: (items) => items.isEmpty
+            ? const _EmptyContent(
+                title: 'No questions yet',
+                message:
+                    'Ask an administrator to add questions for this topic.',
+                icon: Icons.quiz_outlined,
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: items.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final question = items[index];
+                  return Card(
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      title: MathText(question.statementLatex),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          question.isPyq
+                              ? 'GATE ${question.pyqYear} · ${question.type.toUpperCase()}'
+                              : question.type.toUpperCase(),
+                        ),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => QuestionAttemptScreen(
+                            question: question,
+                            subjectName: subject.name,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
+    );
+  }
+}
+
+class _LoadError extends StatelessWidget {
+  const _LoadError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                subject.name,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '$totalTopics Topics • ${subject.questionsSolved} Solved',
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
-          ),
-          
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Progress', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                  Text(
-                    '${(subject.progress * 100).toStringAsFixed(0)}%',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryLight),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              AppProgressBar(
-                progress: subject.progress,
-                color: AppColors.primaryLight,
-                height: 6,
-              ),
-            ],
+          const Icon(Icons.cloud_off_outlined, size: 36),
+          const SizedBox(height: 12),
+          Text(message, textAlign: TextAlign.center),
+          const SizedBox(height: 12),
+          OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+    ),
+  );
+}
+
+class _EmptyContent extends StatelessWidget {
+  const _EmptyContent({
+    required this.title,
+    required this.message,
+    required this.icon,
+  });
+
+  final String title;
+  final String message;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 42, color: AppColors.primaryLight),
+          const SizedBox(height: 12),
+          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 6),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
 }

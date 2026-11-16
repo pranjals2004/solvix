@@ -13,7 +13,7 @@ Solvix is an AI-assisted adaptive learning platform for GATE Computer Science an
 7. Start the ML service in another terminal: `python -m uvicorn main:app --reload --app-dir ml-service`.
 8. Optionally add clearly labelled sample questions: `npm run db:seed`.
 9. Start the API: `npm run dev:api`.
-10. In another terminal, run the Flutter app from the repository root with `flutter run`.
+10. In another terminal, run the Flutter app from the repository root with `flutter run --dart-define=SOLVIX_API_URL=http://10.0.2.2:3000/api/v1` on an Android emulator. For the iOS simulator, use `http://localhost:3000/api/v1`; for a physical phone, use the development machine's LAN address.
 
 The API health check is available at `http://localhost:3000/health`; readiness is at `/ready`. API details are in [docs/API.md](docs/API.md), content templates are in [content/templates](content/templates), and implementation decisions are in [docs/DECISIONS.md](docs/DECISIONS.md).
 

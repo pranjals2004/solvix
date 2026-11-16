@@ -18,3 +18,9 @@
 - **Require the ML service for writes that create retrieval content.** If embeddings are unavailable or malformed, the API rejects the write/import instead of persisting content that cannot be retrieved. No synthetic vectors are used.
 - **Use slugs for CSV imports and UUIDs for JSON imports.** CSV stays readable for spreadsheet editing, while JSON can preserve stable database IDs for repeatable imports.
 - **Label seed questions as synthetic placeholders.** They demonstrate question types and subject/topic setup, but are not represented as authentic GATE questions or research results.
+
+## Phase 3
+
+- **Add the minimal submission endpoint alongside the Flutter attempt flow.** Content question reads intentionally omit answers, so the client must submit an authenticated attempt to receive grading and the worked solution. Confidence and time are recorded now; ranking and rating updates remain assigned to their later phases.
+- **Store the access token with platform secure storage.** This preserves a signed-in session across app restarts without putting the JWT in ordinary preferences.
+- **Keep the research preview screens out of the signed-in navigation until their API phases are implemented.** The Phase 3 home and profile avoid presenting the earlier UI prototype's synthetic progress figures as account data.

@@ -6,6 +6,8 @@ import type { AppConfig } from './config/env';
 import type { AuthRepository } from './domain/user';
 import { createContentRouter } from './content/routes';
 import type { ContentService } from './content/service';
+import { createPracticeRouter } from './practice/routes';
+import type { SubmissionRepository } from './practice/types';
 import { createAuthRouter } from './http/auth';
 import { HttpError } from './http/errors';
 import { createRateLimit } from './http/rate-limit';
@@ -16,6 +18,7 @@ export type AppDependencies = {
   redis: RedisService;
   config: AppConfig;
   contentService?: ContentService;
+  submissionRepository?: SubmissionRepository;
 };
 
 export function createApp(dependencies: AppDependencies) {
@@ -74,6 +77,9 @@ export function createApp(dependencies: AppDependencies) {
   app.use('/api/v1/auth', createAuthRouter(dependencies));
   if (dependencies.contentService) {
     app.use('/api/v1', createContentRouter(dependencies.contentService, dependencies.redis, dependencies.config));
+  }
+  if (dependencies.submissionRepository) {
+    app.use('/api/v1', createPracticeRouter(dependencies.submissionRepository, dependencies.redis, dependencies.config));
   }
   app.use((_request, response) => {
     response.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found.' } });

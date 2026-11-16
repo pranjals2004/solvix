@@ -8,6 +8,7 @@ import { IoredisService } from './infra/redis';
 import { PostgresContentRepository } from './db/content-repository';
 import { MlServiceEmbeddingClient } from './content/embedding-client';
 import { ContentService } from './content/service';
+import { PostgresSubmissionRepository } from './db/submission-repository';
 
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
@@ -25,6 +26,7 @@ async function start() {
       redis,
       config,
       contentService: new ContentService(contentRepository, new MlServiceEmbeddingClient(config.mlServiceUrl)),
+      submissionRepository: new PostgresSubmissionRepository(pool),
     });
     server = app.listen(config.port, () => {
       process.stdout.write(`Solvix API listening on port ${config.port}\n`);

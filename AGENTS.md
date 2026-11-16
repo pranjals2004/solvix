@@ -13,13 +13,14 @@ Run these from the repository root unless noted:
 | Start local infrastructure | Copy `.env.example` to `.env`, then `docker compose up -d` |
 | Install API dependencies | `npm install` |
 | Install ML dependencies | `python -m pip install -r ml-service/requirements.txt` |
+| Install Flutter dependencies | `flutter pub get` |
 | Run API in development | `npm run dev:api` |
 | Build API | `npm run build` |
 | Run API tests | `npm test` |
 | Lint API | `npm run lint` |
 | Apply database migrations | `npm run db:migrate` |
 | Seed clearly labelled sample content | Start the ML service, then `npm run db:seed` |
-| Run Flutter app | From the repository root, run `flutter run` |
+| Run Flutter app | From the repository root, run `flutter run --dart-define=SOLVIX_API_URL=http://10.0.2.2:3000/api/v1` on Android emulator |
 | Test Flutter app | `flutter test` |
 | Analyze Flutter app | `flutter analyze --no-fatal-infos` |
 | Run ML service | `python -m uvicorn main:app --reload --app-dir ml-service` |

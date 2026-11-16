@@ -14,7 +14,7 @@ flowchart LR
   W --> ML[FastAPI ML service]
 ```
 
-The API owns authentication, validation, and synchronous product endpoints. Content imports and admin edits call the Python service to embed solutions and notes before storing chunks in `note_chunks`; public content routes do not expose answer keys. A later worker process will own long-running doubt resolution and scheduled tasks. PostgreSQL stores product and audit data; Redis supports short-lived tokens, rate limits, queues, and realtime coordination; MinIO stores private user uploads. The Python service owns embeddings and clustering. Flutter remains in the repository root to preserve the pre-existing project setup (see `docs/DECISIONS.md`).
+The API owns authentication, validation, and synchronous product endpoints. Content imports and admin edits call the Python service to embed solutions and notes before storing chunks in `note_chunks`; public content routes do not expose answer keys. The Flutter client uses Dio with a secure token store, and receives grading and the worked solution only after an authenticated submission. A later worker process will own long-running doubt resolution and scheduled tasks. PostgreSQL stores product and audit data; Redis supports short-lived tokens, rate limits, queues, and realtime coordination; MinIO stores private user uploads. The Python service owns embeddings and clustering. Flutter remains in the repository root to preserve the pre-existing project setup (see `docs/DECISIONS.md`).
 
 ## Phase 1 runtime boundary
 
