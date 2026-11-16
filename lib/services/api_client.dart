@@ -136,6 +136,19 @@ class SolvixApi {
       response.data!['submission'] as Map<String, dynamic>,
     );
   }
+
+  Future<PracticeNextResult> getNextQuestion({String? topicId}) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/practice/next',
+      queryParameters: {if (topicId != null) 'topicId': topicId},
+    );
+    return PracticeNextResult.fromJson(response.data!);
+  }
+
+  Future<ProgressData> getProgress() async {
+    final response = await _dio.get<Map<String, dynamic>>('/progress');
+    return ProgressData.fromJson(response.data!);
+  }
 }
 
 String apiErrorMessage(Object error) {

@@ -41,3 +41,11 @@
 - **Flag an account after five sub-ten-second attempts in ten minutes.** The flag is durable and exposed through an administrator-only review endpoint; it does not automatically remove prior valid credits.
 - **Encode solved count and the time the current count was reached in the Redis score.** Counts dominate score, then reaching the count earlier ranks higher; stable user-id ordering resolves exact ties in archive output.
 - **Use BullMQ's timezone-aware weekly scheduler at Sunday 23:59.** The scheduled worker archives ranks from durable PostgreSQL rows and the next Monday week uses a separate Redis key.
+
+## Phase 6
+
+- **Use one confidence-weighted Elo formula for the `conf_elo` arm and standard Elo for both other arms.** Random assignment remains random at selection time, while its standard-Elo rating events provide an outcome-only comparison group.
+- **Initialize skill and item estimates at 1000, with `ELO_K`, `ELO_GAMMA`, `ELO_EPSILON`, `ELO_SIGMA`, and the optional weighting parameters configurable through environment variables.** The optional `W(C,S,E) = 1 + α·max(0,C−E)·1[S=0] + β·max(0,E−C)·1[S=1]` over/under-confidence weighting variant is disabled by default.
+- **Choose the closest question to the student's skill plus Gaussian noise from questions in the configured rating window.** If none fit the window, restrict the pool to the nearest available difficulty; avoid questions attempted in the last seven days when alternatives exist.
+- **Claim due resurface rows transactionally and suppress another delivery for six hours.** A miss resets the HLR-inspired sequence to one day; a correct answer on a due item advances to 3, 7, then 14 days.
+- **Compute ECE from the most recent 2,000 rating events with confidence mapped by `(raw - 1) / 4`.** The mobile app uses the same equal-width-bin formula and reports no-data state instead of a fabricated value.

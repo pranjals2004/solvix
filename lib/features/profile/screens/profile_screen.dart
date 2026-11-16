@@ -4,6 +4,7 @@ import 'package:gate_resolver/core/constants/app_colors.dart';
 import 'package:gate_resolver/core/providers/api_providers.dart';
 import 'package:gate_resolver/core/providers/providers.dart';
 import 'package:gate_resolver/data/models/auth_session.dart';
+import 'package:gate_resolver/features/profile/screens/progress_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({required this.session, super.key});
@@ -55,6 +56,23 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(
+                Icons.insights_outlined,
+                color: AppColors.primaryLight,
+              ),
+              title: const Text('Progress and calibration'),
+              subtitle: const Text(
+                'Topic ratings, accuracy, and confidence calibration',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const ProgressScreen()),
               ),
             ),
           ),

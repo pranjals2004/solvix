@@ -8,6 +8,7 @@ import { createContentRouter } from './content/routes';
 import type { ContentService } from './content/service';
 import { createPracticeRouter } from './practice/routes';
 import type { SubmissionRepository } from './practice/types';
+import type { PracticeSelectionRepository, ProgressRepository } from './practice/types';
 import { createAuthRouter } from './http/auth';
 import { HttpError } from './http/errors';
 import { createRateLimit } from './http/rate-limit';
@@ -23,6 +24,8 @@ export type AppDependencies = {
   config: AppConfig;
   contentService?: ContentService;
   submissionRepository?: SubmissionRepository;
+  practiceSelectionRepository?: PracticeSelectionRepository;
+  progressRepository?: ProgressRepository;
   doubtRepository?: DoubtRepository;
   doubtQueue?: DoubtQueue;
   objectStorage?: PrivateObjectStorage;
@@ -33,27 +36,31 @@ export function createApp(dependencies: AppDependencies) {
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet());
-  app.use(cors({
-    origin(origin, callback) {
-      callback(null, !origin || dependencies.config.corsOrigins.includes(origin));
-    },
-  }));
-  app.use(pinoHttp({
-    redact: ['req.headers.authorization', 'req.headers.cookie'],
-    serializers: {
-      req(request) {
-        return {
-          id: request.id,
-          method: request.method,
-          url: request.url?.split('?')[0],
-          remoteAddress: request.remoteAddress,
-        };
+  app.use(
+    cors({
+      origin(origin, callback) {
+        callback(null, !origin || dependencies.config.corsOrigins.includes(origin));
       },
-    },
-    autoLogging: dependencies.config.nodeEnv !== 'test' && {
-      ignore: (request) => request.url === '/health',
-    },
-  }));
+    }),
+  );
+  app.use(
+    pinoHttp({
+      redact: ['req.headers.authorization', 'req.headers.cookie'],
+      serializers: {
+        req(request) {
+          return {
+            id: request.id,
+            method: request.method,
+            url: request.url?.split('?')[0],
+            remoteAddress: request.remoteAddress,
+          };
+        },
+      },
+      autoLogging: dependencies.config.nodeEnv !== 'test' && {
+        ignore: (request) => request.url === '/health',
+      },
+    }),
+  );
   app.use(express.json({ limit: '1mb' }));
 
   const health = (_request: express.Request, response: express.Response) => {
@@ -76,32 +83,56 @@ export function createApp(dependencies: AppDependencies) {
     });
   });
 
-  app.use('/api/v1', createRateLimit(dependencies.redis, {
-    limit: 120,
-    windowMs: 60_000,
-    keyPrefix: 'rate:api',
-    enabled: dependencies.config.nodeEnv !== 'test',
-  }));
+  app.use(
+    '/api/v1',
+    createRateLimit(dependencies.redis, {
+      limit: 120,
+      windowMs: 60_000,
+      keyPrefix: 'rate:api',
+      enabled: dependencies.config.nodeEnv !== 'test',
+    }),
+  );
   app.use('/api/v1/auth', createAuthRouter(dependencies));
   if (dependencies.contentService) {
-    app.use('/api/v1', createContentRouter(dependencies.contentService, dependencies.redis, dependencies.config));
+    app.use(
+      '/api/v1',
+      createContentRouter(dependencies.contentService, dependencies.redis, dependencies.config),
+    );
   }
   if (dependencies.submissionRepository) {
-    app.use('/api/v1', createPracticeRouter(
-      dependencies.submissionRepository, dependencies.redis, dependencies.config, dependencies.weeklyLeaderboard,
-    ));
+    app.use(
+      '/api/v1',
+      createPracticeRouter(
+        dependencies.submissionRepository,
+        dependencies.redis,
+        dependencies.config,
+        dependencies.weeklyLeaderboard,
+        dependencies.practiceSelectionRepository,
+        dependencies.progressRepository,
+      ),
+    );
   }
   if (dependencies.weeklyLeaderboard) {
-    app.use('/api/v1', createLeaderboardRouter(dependencies.weeklyLeaderboard, dependencies.redis, dependencies.config));
+    app.use(
+      '/api/v1',
+      createLeaderboardRouter(
+        dependencies.weeklyLeaderboard,
+        dependencies.redis,
+        dependencies.config,
+      ),
+    );
   }
   if (dependencies.doubtRepository && dependencies.doubtQueue && dependencies.objectStorage) {
-    app.use('/api/v1', createDoubtRouter({
-      repository: dependencies.doubtRepository,
-      queue: dependencies.doubtQueue,
-      storage: dependencies.objectStorage,
-      redis: dependencies.redis,
-      config: dependencies.config,
-    }));
+    app.use(
+      '/api/v1',
+      createDoubtRouter({
+        repository: dependencies.doubtRepository,
+        queue: dependencies.doubtQueue,
+        storage: dependencies.objectStorage,
+        redis: dependencies.redis,
+        config: dependencies.config,
+      }),
+    );
   }
   app.use((_request, response) => {
     response.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found.' } });
@@ -130,6 +161,10 @@ export function createApp(dependencies: AppDependencies) {
 }
 
 function isRequestError(error: unknown): error is { status: number } {
-  return typeof error === 'object' && error !== null && 'status' in error &&
-    typeof error.status === 'number';
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    typeof error.status === 'number'
+  );
 }

@@ -151,7 +151,47 @@ class TopicQuestionsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final questions = ref.watch(questionsProvider(topic.id));
     return Scaffold(
-      appBar: AppBar(title: Text(topic.name)),
+      appBar: AppBar(
+        title: Text(topic.name),
+        actions: [
+          IconButton(
+            tooltip: 'Start adaptive practice',
+            icon: const Icon(Icons.auto_awesome),
+            onPressed: () async {
+              try {
+                final result = await ref
+                    .read(solvixApiProvider)
+                    .getNextQuestion(topicId: topic.id);
+                if (!context.mounted) return;
+                if (result.question == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'No question is available right now. Check back after more resurfaced questions are due.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                await Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => QuestionAttemptScreen(
+                      question: result.question!,
+                      subjectName: subject.name,
+                    ),
+                  ),
+                );
+              } catch (error) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(apiErrorMessage(error))),
+                  );
+                }
+              }
+            },
+          ),
+        ],
+      ),
       body: questions.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _LoadError(

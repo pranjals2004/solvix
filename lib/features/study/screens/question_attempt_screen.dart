@@ -375,6 +375,11 @@ class _ResultCard extends StatelessWidget {
               'Confidence recorded: $confidence / 5',
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            const SizedBox(height: 6),
+            Text(
+              'Topic rating: ${result.skillRatingBefore.toStringAsFixed(0)} -> ${result.skillRatingAfter.toStringAsFixed(1)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -123,3 +123,6 @@ final topicsProvider = FutureProvider.family<List<ApiTopic>, String>(
 final questionsProvider = FutureProvider.family<List<ApiQuestion>, String>(
   (ref, topicId) => ref.watch(solvixApiProvider).getQuestions(topicId: topicId),
 );
+final progressProvider = FutureProvider<ProgressData>(
+  (ref) => ref.watch(solvixApiProvider).getProgress(),
+);

@@ -77,6 +77,10 @@ class SubmissionResult {
     this.countedForRank = false,
     this.leaderboardWeekStart,
     this.rankExclusionReason,
+    this.skillRatingBefore = 1000,
+    this.skillRatingAfter = 1000,
+    this.questionRatingBefore = 1000,
+    this.questionRatingAfter = 1000,
   });
 
   final bool isCorrect;
@@ -85,14 +89,122 @@ class SubmissionResult {
   final bool countedForRank;
   final String? leaderboardWeekStart;
   final String? rankExclusionReason;
+  final double skillRatingBefore;
+  final double skillRatingAfter;
+  final double questionRatingBefore;
+  final double questionRatingAfter;
 
-  factory SubmissionResult.fromJson(Map<String, dynamic> json) =>
-      SubmissionResult(
-        isCorrect: json['isCorrect'] as bool,
-        solutionLatex: json['solutionLatex'] as String,
-        attemptNo: json['attemptNo'] as int,
-        countedForRank: json['countedForRank'] as bool? ?? false,
-        leaderboardWeekStart: json['leaderboardWeekStart'] as String?,
-        rankExclusionReason: json['rankExclusionReason'] as String?,
+  factory SubmissionResult.fromJson(
+    Map<String, dynamic> json,
+  ) => SubmissionResult(
+    isCorrect: json['isCorrect'] as bool,
+    solutionLatex: json['solutionLatex'] as String,
+    attemptNo: json['attemptNo'] as int,
+    countedForRank: json['countedForRank'] as bool? ?? false,
+    leaderboardWeekStart: json['leaderboardWeekStart'] as String?,
+    rankExclusionReason: json['rankExclusionReason'] as String?,
+    skillRatingBefore: (json['skillRatingBefore'] as num?)?.toDouble() ?? 1000,
+    skillRatingAfter: (json['skillRatingAfter'] as num?)?.toDouble() ?? 1000,
+    questionRatingBefore:
+        (json['questionRatingBefore'] as num?)?.toDouble() ?? 1000,
+    questionRatingAfter:
+        (json['questionRatingAfter'] as num?)?.toDouble() ?? 1000,
+  );
+}
+
+class PracticeNextResult {
+  const PracticeNextResult({
+    required this.question,
+    required this.isResurfaced,
+    required this.selectionMode,
+    required this.skillRating,
+    this.reason,
+  });
+
+  final ApiQuestion? question;
+  final bool isResurfaced;
+  final String selectionMode;
+  final double skillRating;
+  final String? reason;
+
+  factory PracticeNextResult.fromJson(Map<String, dynamic> json) {
+    final value = json['question'];
+    return PracticeNextResult(
+      question: value is Map<String, dynamic>
+          ? ApiQuestion.fromJson(value)
+          : null,
+      isResurfaced: json['isResurfaced'] as bool? ?? false,
+      selectionMode: json['selectionMode'] as String? ?? 'adaptive',
+      skillRating: (json['skillRating'] as num?)?.toDouble() ?? 1000,
+      reason: json['reason'] as String?,
+    );
+  }
+}
+
+class ProgressTopic {
+  const ProgressTopic({
+    required this.topicId,
+    required this.topicName,
+    required this.subjectId,
+    required this.subjectName,
+    required this.rating,
+    required this.attempts,
+    required this.correct,
+  });
+
+  final String topicId;
+  final String topicName;
+  final String subjectId;
+  final String subjectName;
+  final double rating;
+  final int attempts;
+  final int correct;
+
+  factory ProgressTopic.fromJson(Map<String, dynamic> json) => ProgressTopic(
+    topicId: json['topicId'] as String,
+    topicName: json['topicName'] as String,
+    subjectId: json['subjectId'] as String,
+    subjectName: json['subjectName'] as String,
+    rating: (json['rating'] as num).toDouble(),
+    attempts: json['attempts'] as int,
+    correct: json['correct'] as int,
+  );
+}
+
+class ProgressObservation {
+  const ProgressObservation({
+    required this.topicId,
+    required this.confidence,
+    required this.outcome,
+  });
+
+  final String topicId;
+  final int confidence;
+  final bool outcome;
+
+  factory ProgressObservation.fromJson(Map<String, dynamic> json) =>
+      ProgressObservation(
+        topicId: json['topicId'] as String,
+        confidence: json['confidence'] as int,
+        outcome: json['outcome'] as bool,
       );
+}
+
+class ProgressData {
+  const ProgressData({required this.topics, required this.observations});
+
+  final List<ProgressTopic> topics;
+  final List<ProgressObservation> observations;
+
+  factory ProgressData.fromJson(Map<String, dynamic> json) => ProgressData(
+    topics: (json['topics'] as List<dynamic>)
+        .map((value) => ProgressTopic.fromJson(value as Map<String, dynamic>))
+        .toList(),
+    observations: (json['observations'] as List<dynamic>)
+        .map(
+          (value) =>
+              ProgressObservation.fromJson(value as Map<String, dynamic>),
+        )
+        .toList(),
+  );
 }

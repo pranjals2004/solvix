@@ -7,7 +7,10 @@ const environmentSchema = z.object({
   REDIS_URL: z.string().url(),
   JWT_SECRET: z.string().min(32),
   JWT_ISSUER: z.string().min(1).default('solvix-api'),
-  JWT_ACCESS_TTL: z.string().regex(/^\d+[smhd]$/).default('15m'),
+  JWT_ACCESS_TTL: z
+    .string()
+    .regex(/^\d+[smhd]$/)
+    .default('15m'),
   BCRYPT_ROUNDS: z.coerce.number().int().min(10).max(14).default(12),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
   ML_SERVICE_URL: z.string().url().default('http://localhost:8000'),
@@ -26,6 +29,13 @@ const environmentSchema = z.object({
   S3_ACCESS_KEY: z.string().min(1),
   S3_SECRET_KEY: z.string().min(1),
   LEADERBOARD_TIMEZONE: z.string().min(1).default('Asia/Kolkata'),
+  ELO_K: z.coerce.number().positive().default(32),
+  ELO_GAMMA: z.coerce.number().min(0).default(0.5),
+  ELO_EPSILON: z.coerce.number().min(0).default(200),
+  ELO_SIGMA: z.coerce.number().min(0).default(25),
+  ELO_WEIGHTING_VARIANT: z.enum(['off', 'calibration_bias']).default('off'),
+  ELO_ALPHA: z.coerce.number().min(0).default(0.5),
+  ELO_BETA: z.coerce.number().min(0).default(0.5),
 });
 
 export type AppConfig = {
@@ -54,6 +64,13 @@ export type AppConfig = {
   s3AccessKey: string;
   s3SecretKey: string;
   leaderboardTimezone?: string;
+  eloK?: number;
+  eloGamma?: number;
+  eloEpsilon?: number;
+  eloSigma?: number;
+  eloWeightingVariant?: 'off' | 'calibration_bias';
+  eloAlpha?: number;
+  eloBeta?: number;
 };
 
 export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -93,5 +110,12 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
     s3AccessKey: parsed.data.S3_ACCESS_KEY,
     s3SecretKey: parsed.data.S3_SECRET_KEY,
     leaderboardTimezone: parsed.data.LEADERBOARD_TIMEZONE,
+    eloK: parsed.data.ELO_K,
+    eloGamma: parsed.data.ELO_GAMMA,
+    eloEpsilon: parsed.data.ELO_EPSILON,
+    eloSigma: parsed.data.ELO_SIGMA,
+    eloWeightingVariant: parsed.data.ELO_WEIGHTING_VARIANT,
+    eloAlpha: parsed.data.ELO_ALPHA,
+    eloBeta: parsed.data.ELO_BETA,
   };
 }

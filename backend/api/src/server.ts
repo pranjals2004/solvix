@@ -17,6 +17,7 @@ import { attachSocketServer } from './realtime/socket-server';
 import type { Server as SocketServer } from 'socket.io';
 import { PostgresLeaderboardRepository } from './db/leaderboard-repository';
 import { RedisLeaderboardService } from './leaderboard/service';
+import { PostgresPracticeRepository, PostgresProgressRepository } from './db/practice-repository';
 
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
@@ -27,7 +28,9 @@ async function start() {
   const queue = new BullDoubtQueue(config.redisUrl);
   const leaderboardRepository = new PostgresLeaderboardRepository(pool);
   const leaderboard = new RedisLeaderboardService(
-    leaderboardRepository, redis, config.leaderboardTimezone ?? 'Asia/Kolkata',
+    leaderboardRepository,
+    redis,
+    config.leaderboardTimezone ?? 'Asia/Kolkata',
   );
   let server: ReturnType<typeof createServer> | undefined;
   let socketServer: SocketServer | undefined;
@@ -39,8 +42,21 @@ async function start() {
       repository: new PostgresAuthRepository(pool),
       redis,
       config,
-      contentService: new ContentService(contentRepository, new MlServiceEmbeddingClient(config.mlServiceUrl)),
-      submissionRepository: new PostgresSubmissionRepository(pool, config.leaderboardTimezone ?? 'Asia/Kolkata'),
+      contentService: new ContentService(
+        contentRepository,
+        new MlServiceEmbeddingClient(config.mlServiceUrl),
+      ),
+      submissionRepository: new PostgresSubmissionRepository(
+        pool,
+        config.leaderboardTimezone ?? 'Asia/Kolkata',
+        config,
+      ),
+      practiceSelectionRepository: new PostgresPracticeRepository(
+        pool,
+        config.eloEpsilon,
+        config.eloSigma,
+      ),
+      progressRepository: new PostgresProgressRepository(pool),
       doubtRepository: new PostgresDoubtRepository(pool),
       doubtQueue: queue,
       objectStorage: new S3PrivateObjectStorage(config),

@@ -2,7 +2,7 @@
 
 ## Architecture
 
-Solvix is a monorepo for GATE CS/IT adaptive learning. The existing Flutter client remains at the repository root so its current IDE and platform setup keep working. `backend/api` contains the Express TypeScript API; the separate worker will be added when the doubt pipeline is implemented. `ml-service` contains the Python FastAPI service. PostgreSQL with pgvector, Redis, and MinIO run locally through Docker Compose. Shared product decisions and API notes live in `docs/`.
+Solvix is a monorepo for GATE CS/IT adaptive learning. The existing Flutter client remains at the repository root so its current IDE and platform setup keep working. `backend/api` contains the Express TypeScript API and the separately launched BullMQ worker entrypoint. `ml-service` contains the Python FastAPI service. PostgreSQL with pgvector, Redis, and MinIO run locally through Docker Compose. Shared product decisions and API notes live in `docs/`.
 
 ## Commands
 
@@ -38,6 +38,8 @@ Use Node.js 20, Flutter/Dart versions declared by the Flutter package, and Pytho
 - Keep API and worker processes separate. The worker must not be started as an API side effect.
 - Doubt requests use a Redis-backed BullMQ queue and remain pollable at `GET /api/v1/doubts/:id`; Socket.IO only delivers updates to the authenticated user's room.
 - Weekly leaderboard counts are durable in PostgreSQL and projected into a timezone-specific Redis sorted set; reads reconcile the active week, and the worker archives finished weeks.
+- Adaptive practice updates per-topic skill and per-question difficulty estimates transactionally, records every rating event, prioritizes due resurfacing, and exposes API-backed ECE progress.
+- ECE uses confidence probability `(raw - 1) / 4` and equal-width bins across backend and Flutter implementations.
 - Route all model calls through the provider interface; tests must use deterministic mocks.
 - Label synthetic/demo data and never invent evaluation metrics.
 - Add focused tests for core behavior and update `docs/DECISIONS.md` when resolving a material ambiguity.
