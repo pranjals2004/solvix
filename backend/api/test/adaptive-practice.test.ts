@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { calculateElo, confidenceBiasWeight, expectedScore } from '../src/practice/elo';
 import { expectedCalibrationError } from '../src/practice/ece';
 import { selectNextQuestion } from '../src/practice/selection';
+import { summarizeAdaptiveExperiment } from '../src/practice/evaluation';
 
 describe('confidence-weighted Elo', () => {
   it('computes the expected probability and conserves total rating under standard Elo', () => {
@@ -113,5 +114,75 @@ describe('adaptive practice selection', () => {
         { ...options, arm: 'conf_elo' },
       ),
     ).toBeNull();
+  });
+});
+
+describe('adaptive experiment evaluation', () => {
+  it('computes arm summaries from persisted outcomes without exposing learner IDs', () => {
+    const summaries = summarizeAdaptiveExperiment({ random: 3, standard_elo: 2 }, [
+      {
+        arm: 'random',
+        userId: 'student-a',
+        confidence: 5,
+        correct: true,
+        timeTakenSec: 20,
+      },
+      {
+        arm: 'random',
+        userId: 'student-a',
+        confidence: 1,
+        correct: false,
+        timeTakenSec: 10,
+      },
+      {
+        arm: 'random',
+        userId: 'student-b',
+        confidence: 3,
+        correct: true,
+        timeTakenSec: 30,
+      },
+      {
+        arm: 'standard_elo',
+        userId: 'student-c',
+        confidence: 5,
+        correct: false,
+        timeTakenSec: 40,
+      },
+    ]);
+
+    expect(summaries[0]).toMatchObject({
+      arm: 'random',
+      registeredStudents: 3,
+      participants: 2,
+      attempts: 3,
+      correct: 2,
+      accuracy: 2 / 3,
+      meanTimeSec: 20,
+      medianTimeSec: 20,
+      calibrationAttempts: 3,
+    });
+    expect(summaries[0]?.ece).toBeCloseTo(1 / 6);
+    expect(summaries[1]).toMatchObject({
+      arm: 'standard_elo',
+      registeredStudents: 2,
+      participants: 1,
+      attempts: 1,
+      correct: 0,
+      accuracy: 0,
+      medianTimeSec: 40,
+    });
+    expect(summaries[2]).toMatchObject({
+      arm: 'conf_elo',
+      registeredStudents: 0,
+      participants: 0,
+      attempts: 0,
+      correct: 0,
+      accuracy: null,
+      meanTimeSec: null,
+      medianTimeSec: null,
+      ece: null,
+      calibrationAttempts: 0,
+    });
+    expect(JSON.stringify(summaries)).not.toContain('student-a');
   });
 });

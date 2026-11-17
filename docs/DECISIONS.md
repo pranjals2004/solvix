@@ -17,7 +17,7 @@
 - **Chunk long source content at 1,200 characters with 150 characters of overlap.** This is a simple deterministic baseline that keeps source ordering and avoids introducing another content-processing dependency.
 - **Require the ML service for writes that create retrieval content.** If embeddings are unavailable or malformed, the API rejects the write/import instead of persisting content that cannot be retrieved. No synthetic vectors are used.
 - **Use slugs for CSV imports and UUIDs for JSON imports.** CSV stays readable for spreadsheet editing, while JSON can preserve stable database IDs for repeatable imports.
-- **Label seed questions as synthetic placeholders.** They demonstrate question types and subject/topic setup, but are not represented as authentic GATE questions or research results.
+- **Label seeded questions as synthetic placeholders and seeded notes as demo study material.** They demonstrate question types and the Study reader, but are not represented as authentic GATE questions, instructor-reviewed material, or research results. Replace them with approved content before release.
 
 ## Phase 3
 
@@ -33,6 +33,7 @@
 - **Use provider-specific REST adapters behind one `LLMProvider` interface.** Gemini remains the default, and a deterministic mock is used unless `LLM_MODE=live` is explicitly selected.
 - **Allow one follow-up request at a time.** This keeps each stateless LLM request's full conversation history ordered and prevents concurrent completions from overwriting one another.
 - **Separate the object's private and signed-upload addresses.** The API and worker use `S3_ENDPOINT`; presigned phone uploads use `S3_PUBLIC_ENDPOINT` so Android emulator, iOS simulator, and physical-device routing can be configured without exposing private worker traffic.
+- **Rewrite the signed-upload host for local browser origins during development.** Flutter web runs on a changing localhost port while storage uses port 9000; use the browser's loopback hostname with the configured storage port. Native clients without an `Origin` keep the configured endpoint, and production never rewrites it.
 
 ## Phase 5
 
@@ -59,6 +60,32 @@
 - **Run clustering each Monday at 02:00 in `LEADERBOARD_TIMEZONE` and expose an admin-only manual queue trigger.** Topic runs are transactionally replaced on retry using a stable run ID.
 - **Export only cluster labels and aggregate counts.** Share of doubt volume uses cluster size divided by the number of doubts processed in that topic's latest run; no student identifiers or raw text are exported.
 
+## Home follow-up
+
+- **Use the home screen as a live adaptive-practice entry point.** Show attempt counts and accuracy from the authenticated progress endpoint; recommend the attempted topic with the lowest current skill rating and request its next question through the topic-scoped practice endpoint. If the student has no attempts yet, direct them to the Study library instead of showing mock progress or a fabricated recommendation.
+- **Refresh progress after an adaptive attempt.** Returning from a submitted question invalidates the progress provider so the home recommendation reflects the new server-side rating and attempt history.
+
+## Study-library follow-up
+
+- **Complete the student study library with API-backed topic notes.** Notes are loaded from the existing public content endpoint, shown in a topic-scoped list, and opened in a selectable reader that supports the same plain text and LaTeX content as the API. Reading progress and bookmarks stay out of this phase because the API does not persist either state.
+- **Seed one explicitly labelled demo note for each sample topic.** The existing seed command must create retrievable study content so the notes reader can be exercised end to end; embeddings still come from the ML service, and the demo label tells students to verify and replace the material before relying on it.
+
+## Chrome development follow-up
+
+- **Treat Chrome as a supported local development target.** When no API URL is explicitly supplied, web builds use `localhost`; Android emulators continue to use `10.0.2.2`. An explicit `SOLVIX_API_URL` always takes precedence.
+- **Keep doubt image selection usable in browsers and native apps.** Preview the selected image from bytes supplied by `image_picker`, rather than a `dart:io` file path, while keeping the same private presigned upload flow.
+
 ## Local infrastructure follow-up
 
 - **Use the maintained `pgsty/silo` image for local S3-compatible storage.** The former `minio/minio` and `minio/mc` image references are no longer pullable; Silo preserves the MinIO S3 API, `MINIO_*` settings, health route, and local data format. The compose initializer uses Silo's bundled `mcli` client. The service remains named `minio` so application endpoints and local configuration do not change.
+
+## Phase 8: peer board and privacy
+
+- **Use the existing peer doubt tables, extended with subject/topic and anonymous-author fields.** The API enforces authenticated, bounded thread and reply inputs, subject/topic consistency, and per-user posting limits; Flutter shows empty, retry, and discussion states.
+- **Treat account deletion as a coordinated privacy action.** Export data before deletion when desired; deletion removes user-owned database rows through foreign-key cascades, private image objects, the active leaderboard projection, and all existing sessions through a deleted-account marker.
+- **Keep the account export JSON-only and exclude password hashes and other credentials.** The Flutter profile provides a direct copy action for personal storage.
+
+## Phase 9: evaluation tooling
+
+- **Keep synthetic simulations in memory and export them to a separate labelled file.** A fixed synthetic learner model exercises selection, confidence, grading, and Elo updates without adding synthetic accounts or submissions to the real database.
+- **Evaluate stored outcomes read-only, grouped by assigned arm and local week.** Bootstrap learner-week accuracy means rather than individual attempts, use the project ECE bins, and export only aggregates. Leave unavailable metrics blank; observational reports do not establish causal superiority.

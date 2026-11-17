@@ -24,6 +24,10 @@ Run these from the repository root unless noted:
 | Apply database migrations | `npm run db:migrate` |
 | Seed clearly labelled sample content | Start the ML service, then `npm run db:seed` |
 | Export labelled misconception clusters | `npm run export:misconceptions` |
+| Run clearly labelled in-memory synthetic practice simulation | `npm run simulate:students` |
+| Install research evaluation dependencies | `python -m pip install -r scripts/requirements.txt` |
+| Evaluate persisted research outcomes (read-only DB access) | `npm run evaluate:research` |
+| Run research metric unit tests | `python -m unittest discover -s scripts -p "test_*.py"` |
 | Run Flutter app | From the repository root, run `flutter run --dart-define=SOLVIX_API_URL=http://10.0.2.2:3000/api/v1` on Android emulator |
 | Test Flutter app | `flutter test` |
 | Analyze Flutter app | `flutter analyze --no-fatal-infos` |
@@ -41,9 +45,13 @@ Use Node.js 20, Flutter/Dart versions declared by the Flutter package, and Pytho
 - Doubt requests use a Redis-backed BullMQ queue and remain pollable at `GET /api/v1/doubts/:id`; Socket.IO only delivers updates to the authenticated user's room.
 - Weekly leaderboard counts are durable in PostgreSQL and projected into a timezone-specific Redis sorted set; reads reconcile the active week, and the worker archives finished weeks.
 - Adaptive practice updates per-topic skill and per-question difficulty estimates transactionally, records every rating event, prioritizes due resurfacing, and exposes API-backed ECE progress.
+- Peer doubts use authenticated, bounded API routes, subject/topic filters, optional anonymous authorship, and per-user Redis posting limits.
+- User exports omit credentials; confirmed account deletion removes database cascades, private uploads, the active leaderboard entry, and revokes existing sessions.
 - Misconception clustering is queued to the separate worker, which sends anonymized topic doubts to the FastAPI UMAP/HDBSCAN endpoint. Admin labels are required before tagged hints are returned to students.
 - ECE uses confidence probability `(raw - 1) / 4` and equal-width bins across backend and Flutter implementations.
 - Route all model calls through the provider interface; tests must use deterministic mocks.
 - Label synthetic/demo data and never invent evaluation metrics.
+- Keep synthetic simulation outputs separate from real-data evaluation; the simulator must not write learner rows to PostgreSQL.
+- Evaluation reads PostgreSQL read-only, exports aggregate metrics only, and leaves metrics blank when there is insufficient observed data.
 - Add focused tests for core behavior and update `docs/DECISIONS.md` when resolving a material ambiguity.
 - Use explicit names, small functions, and comments for research logic rather than clever abstractions.

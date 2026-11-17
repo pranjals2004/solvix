@@ -10,6 +10,8 @@ Base path: `/api/v1`. JSON errors use `{ "error": { "code": string, "message": s
 | POST | `/auth/login` | Verify email/password and issue an access token |
 | POST | `/auth/logout` | Revoke the current access token in Redis |
 | GET | `/auth/me` | Return the authenticated account |
+| GET | `/auth/me/export` | Download JSON containing the caller's account and learning data, excluding credentials |
+| DELETE | `/auth/me` | Permanently delete the caller's account after `{ "confirmation": "DELETE" }` |
 | GET | `/subjects` | List subjects |
 | GET | `/subjects/:subjectId/topics` | List a subject's topics |
 | GET | `/questions` | Browse questions; filters: `subjectId`, `topicId`, `pyq`, `year`, `limit`, `offset` |
@@ -31,6 +33,10 @@ Base path: `/api/v1`. JSON errors use `{ "error": { "code": string, "message": s
 | GET | `/doubts/:id` | Poll an owned doubt for status, conversation, AI response, and error |
 | POST | `/doubts/:id/messages` | Queue one follow-up with the full conversation resent to the model; returns HTTP 202 |
 | POST | `/doubts/:id/feedback` | Save or update `{helpful:boolean}` feedback for an owned doubt |
+| GET | `/community/threads?subjectId=&topicId=&limit=50` | List authenticated peer-doubt discussions, optionally filtered by subject/topic |
+| POST | `/community/threads` | Create a bounded peer question; supports optional anonymous authorship |
+| GET | `/community/threads/:threadId` | Read one discussion and its replies |
+| POST | `/community/threads/:threadId/replies` | Add an authenticated, bounded reply |
 | POST/PATCH/DELETE | `/admin/subjects` and `/admin/subjects/:subjectId` | Admin subject management |
 | POST | `/admin/subjects/:subjectId/topics` | Admin topic creation |
 | PATCH/DELETE | `/admin/topics/:topicId` | Admin topic management |
@@ -52,8 +58,10 @@ The separate worker processes clustering jobs. It runs weekly on Monday at 02:00
 
 The leaderboard uses Monday-to-Sunday weeks in `LEADERBOARD_TIMEZONE` (default `Asia/Kolkata`). A correct attempt taking at least 10 seconds increments a student's count only the first time they solve that question during the week. Incorrect and faster attempts remain in submission history but do not count. The score encodes count first, then the time the user reached the current count (earlier ranks higher); PostgreSQL is the durable source and each weekly read reconciles the Redis ZSET. Five attempts under 10 seconds within 10 minutes flag the account for administrator review. The worker schedules a Sunday 23:59 local archive; next week's key is separate.
 
+The peer doubt board allows authenticated learners to ask a title/body question, optionally hide their display name, filter by subject or topic, and post replies. Thread bodies are limited to 3,000 characters and replies to 2,000; per-user Redis limits prevent repeated posting. Account export omits password hashes. Account deletion requires explicit confirmation, removes related database rows and private uploads, revokes all existing access tokens, and removes the caller from the active leaderboard projection.
+
 `POST /uploads/presign` accepts `{ "contentType": "image/png", "contentLength": 12345 }`. Upload the bytes to the returned `uploadUrl` with the same content type, then pass the returned `imageKey` to `POST /doubts`. Keys are private and scoped to the authenticated user. The URL expires after five minutes.
 
 `POST /doubts` accepts at least one of `text` (up to 4,000 characters) or an uploaded `imageKey`, and an optional `questionId`. Send a stable `Idempotency-Key` header for safe retries. The API inserts a pending record, adds a BullMQ `resolve` job whose ID is the doubt UUID, and responds with 202. Duplicate keys for one account reuse the same doubt and BullMQ job. Each user's doubt creations, follow-ups, and upload presigns have separate Redis-backed limits.
 
-The separate worker is started with `npm run dev:worker`. It embeds doubt text with the ML service, retrieves up to three question/topic-prioritized chunks from pgvector, adds the linked question and platform solution, reads an optional private image, and calls the selected `LLMProvider`. `LLM_MODE=mock` uses a deterministic offline tutor; `LLM_MODE=live` selects Gemini by default or Anthropic/OpenAI with the matching API key and model settings. The worker retries up to five times with exponential backoff. Socket.IO updates are sent only to the user room authenticated by the access token; polling remains available if sockets cannot connect. Every returned reply is marked AI-generated and ends with one diagnostic question. `S3_ENDPOINT` is the API/worker's private object-store address, while `S3_PUBLIC_ENDPOINT` is the address the phone uses for the presigned upload (the example targets the Android emulator; set it to `localhost` for the iOS simulator or your LAN address for a physical phone).
+The separate worker is started with `npm run dev:worker`. It embeds doubt text with the ML service, retrieves up to three question/topic-prioritized chunks from pgvector, adds the linked question and platform solution, reads an optional private image, and calls the selected `LLMProvider`. `LLM_MODE=mock` uses a deterministic offline tutor; `LLM_MODE=live` selects Gemini by default or Anthropic/OpenAI with the matching API key and model settings. The worker retries up to five times with exponential backoff. Socket.IO updates are sent only to the user room authenticated by the access token; polling remains available if sockets cannot connect. Every returned reply is marked AI-generated and ends with one diagnostic question. `S3_ENDPOINT` is the API/worker's private object-store address, while `S3_PUBLIC_ENDPOINT` is the address native clients use for the presigned upload (the example targets the Android emulator; set it to `localhost` for the iOS simulator or your LAN address for a physical phone). In development, browser requests from localhost or 127.0.0.1 automatically receive a signed URL with that loopback hostname and the configured storage port. Production does not rewrite the endpoint.

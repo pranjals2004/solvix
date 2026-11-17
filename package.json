@@ -12,6 +12,9 @@
     "lint": "npm --workspace @solvix/api run lint",
     "db:migrate": "npm --workspace @solvix/api run db:migrate",
     "db:seed": "npm --workspace @solvix/api run db:seed",
-    "export:misconceptions": "tsx scripts/export_misconceptions.ts"
+    "export:misconceptions": "tsx scripts/export_misconceptions.ts",
+    "evaluate:adaptive": "tsx scripts/evaluate_adaptive.ts",
+    "simulate:students": "tsx scripts/simulate_students.ts",
+    "evaluate:research": "python -m scripts.evaluate"
   }
 }
