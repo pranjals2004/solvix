@@ -5,16 +5,17 @@ Solvix is an AI-assisted adaptive learning platform for GATE Computer Science an
 ## Local setup
 
 1. Install Node.js 20, Flutter, Python 3.11, and Docker Compose.
-2. Copy `.env.example` to `.env` and adjust local values if needed.
-3. Start PostgreSQL with pgvector, Redis, and local MinIO-compatible S3 storage (Silo): `docker compose up -d`.
-4. Install API dependencies: `npm install`.
-5. Install ML dependencies: `python -m pip install -r ml-service/requirements.txt`. To use research reports, also install `python -m pip install -r scripts/requirements.txt`.
-6. Apply schema migrations: `npm run db:migrate`.
-7. Start the ML service in another terminal: `python -m uvicorn main:app --reload --app-dir ml-service`.
-8. Optionally add clearly labelled demo study notes and synthetic placeholder questions: `npm run db:seed`. This command uses the ML service to generate note and solution embeddings; it does not create authentic GATE questions.
-9. Start the API: `npm run dev:api`.
-10. For doubt resolution, start the separate worker in another terminal: `npm run dev:worker`. Keep `LLM_MODE=mock` for deterministic local replies.
-11. In another terminal, run the Flutter app from the repository root with `flutter run --dart-define=SOLVIX_API_URL=http://10.0.2.2:3000/api/v1` on an Android emulator. For the iOS simulator, use `http://localhost:3000/api/v1`; for Chrome, use `flutter run -d chrome --dart-define=SOLVIX_API_URL=http://localhost:3000/api/v1`; for a physical phone, use the development machine's LAN address.
+2. Create and activate a project Python environment: `py -3.11 -m venv .venv`, then `.\.venv\Scripts\Activate.ps1`.
+3. Copy `.env.example` to `.env` and adjust local values if needed.
+4. Start PostgreSQL with pgvector, Redis, and local MinIO-compatible S3 storage (Silo): `docker compose up -d`.
+5. Install API dependencies: `npm install`.
+6. Install ML dependencies: `python -m pip install -r ml-service/requirements.txt`. To use research reports, also install `python -m pip install -r scripts/requirements.txt`.
+7. Apply schema migrations: `npm run db:migrate`.
+8. In a terminal with `.venv` activated, start the ML service: `python -m uvicorn main:app --reload --app-dir ml-service`.
+9. Optionally add clearly labelled demo study notes and synthetic placeholder questions: `npm run db:seed`. This command uses the ML service to generate note and solution embeddings; it does not create authentic GATE questions.
+10. Start the API: `npm run dev:api`.
+11. For doubt resolution, start the separate worker in another terminal: `npm run dev:worker`. Keep `LLM_MODE=mock` for deterministic local replies.
+12. In another terminal, run the Flutter app from the repository root with `flutter run --dart-define=SOLVIX_API_URL=http://10.0.2.2:3000/api/v1` on an Android emulator. For the iOS simulator, use `http://localhost:3000/api/v1`; for Chrome, use `flutter run -d chrome --dart-define=SOLVIX_API_URL=http://localhost:3000/api/v1`; for a physical phone, use the development machine's LAN address.
 
 The API health check is available at `http://localhost:3000/health`; readiness is at `/ready`. API details are in [docs/API.md](docs/API.md), content templates are in [content/templates](content/templates), and implementation decisions are in [docs/DECISIONS.md](docs/DECISIONS.md).
 

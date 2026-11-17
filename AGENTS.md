@@ -11,27 +11,28 @@ Run these from the repository root unless noted:
 | Task | Command |
 | --- | --- |
 | Start local infrastructure | Copy `.env.example` to `.env`, then `docker compose up -d` |
+| Create Python environment | `py -3.11 -m venv .venv`, then `\.venv\Scripts\Activate.ps1` |
 | Install API dependencies | `npm install` |
-| Install ML dependencies | `python -m pip install -r ml-service/requirements.txt` |
+| Install ML dependencies | With `.venv` active, run `python -m pip install -r ml-service/requirements.txt` |
 | Install Flutter dependencies | `flutter pub get` |
 | Run API in development | `npm run dev:api` |
 | Run doubt worker in development | `npm run dev:worker` |
 | Run doubt, weekly archive, and misconception workers | `npm run dev:worker` |
 | Build API | `npm run build` |
 | Run API tests | `npm test` |
-| Run ML service tests | From `ml-service`, run `python -m unittest test_main` |
+| Run ML service tests | From `ml-service` with `.venv` active, run `python -m unittest test_main` |
 | Lint API | `npm run lint` |
 | Apply database migrations | `npm run db:migrate` |
 | Seed clearly labelled sample content | Start the ML service, then `npm run db:seed` |
 | Export labelled misconception clusters | `npm run export:misconceptions` |
 | Run clearly labelled in-memory synthetic practice simulation | `npm run simulate:students` |
-| Install research evaluation dependencies | `python -m pip install -r scripts/requirements.txt` |
-| Evaluate persisted research outcomes (read-only DB access) | `npm run evaluate:research` |
-| Run research metric unit tests | `python -m unittest discover -s scripts -p "test_*.py"` |
+| Install research evaluation dependencies | With `.venv` active, run `python -m pip install -r scripts/requirements.txt` |
+| Evaluate persisted research outcomes (read-only DB access) | `npm run evaluate:research` with `.venv` active |
+| Run research metric unit tests | With `.venv` active, run `python -m unittest discover -s scripts -p "test_*.py"` |
 | Run Flutter app | From the repository root, run `flutter run --dart-define=SOLVIX_API_URL=http://10.0.2.2:3000/api/v1` on Android emulator |
 | Test Flutter app | `flutter test` |
 | Analyze Flutter app | `flutter analyze --no-fatal-infos` |
-| Run ML service | `python -m uvicorn main:app --reload --app-dir ml-service` |
+| Run ML service | With `.venv` active, run `python -m uvicorn main:app --reload --app-dir ml-service` |
 
 Use Node.js 20, Flutter/Dart versions declared by the Flutter package, and Python 3.11 for the ML service. The API reads secrets and connection settings from `.env`; never commit `.env` or credentials.
 
