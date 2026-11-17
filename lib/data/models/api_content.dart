@@ -33,6 +33,30 @@ class ApiTopic {
   );
 }
 
+class ApiNote {
+  const ApiNote({
+    required this.id,
+    required this.subjectId,
+    required this.topicId,
+    required this.title,
+    required this.content,
+  });
+
+  final String id;
+  final String subjectId;
+  final String topicId;
+  final String title;
+  final String content;
+
+  factory ApiNote.fromJson(Map<String, dynamic> json) => ApiNote(
+    id: json['id'] as String,
+    subjectId: json['subjectId'] as String,
+    topicId: json['topicId'] as String,
+    title: json['title'] as String,
+    content: json['content'] as String,
+  );
+}
+
 class ApiQuestion {
   const ApiQuestion({
     required this.id,

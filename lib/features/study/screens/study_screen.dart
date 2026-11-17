@@ -5,6 +5,7 @@ import 'package:gate_resolver/core/providers/api_providers.dart';
 import 'package:gate_resolver/core/widgets/math_text.dart';
 import 'package:gate_resolver/data/models/api_content.dart';
 import 'package:gate_resolver/features/study/screens/question_attempt_screen.dart';
+import 'package:gate_resolver/features/study/screens/topic_notes_screen.dart';
 import 'package:gate_resolver/services/api_client.dart';
 
 class StudyScreen extends ConsumerWidget {
@@ -154,6 +155,16 @@ class TopicQuestionsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(topic.name),
         actions: [
+          IconButton(
+            tooltip: 'Read topic notes',
+            icon: const Icon(Icons.menu_book_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    TopicNotesScreen(topic: topic, subjectName: subject.name),
+              ),
+            ),
+          ),
           IconButton(
             tooltip: 'Start adaptive practice',
             icon: const Icon(Icons.auto_awesome),

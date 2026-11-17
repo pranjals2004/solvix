@@ -159,6 +159,9 @@ export function createRequireAuth(redis: RedisService, config: AppConfig): Reque
     if (await redis.get(`auth:blocklist:${decoded.jti}`)) {
       throw new HttpError(401, 'UNAUTHENTICATED', 'This access token has been revoked.');
     }
+    if (await redis.get(`auth:deleted:${decoded.sub}`)) {
+      throw new HttpError(401, 'UNAUTHENTICATED', 'This account has been deleted.');
+    }
 
     request.auth = {
       userId: decoded.sub,

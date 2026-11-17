@@ -10,6 +10,7 @@ import { createPracticeRouter } from './practice/routes';
 import type { SubmissionRepository } from './practice/types';
 import type { PracticeSelectionRepository, ProgressRepository } from './practice/types';
 import { createAuthRouter } from './http/auth';
+import { isAllowedOrigin } from './http/cors-origin';
 import { HttpError } from './http/errors';
 import { createRateLimit } from './http/rate-limit';
 import type { RedisService } from './infra/redis';
@@ -19,6 +20,10 @@ import { createLeaderboardRouter } from './leaderboard/routes';
 import type { WeeklyLeaderboard } from './leaderboard/types';
 import { createMisconceptionRouter } from './misconceptions/routes';
 import type { MisconceptionQueue, MisconceptionRepository } from './misconceptions/types';
+import { createPeerDoubtRouter } from './community/routes';
+import type { PeerDoubtRepository } from './community/types';
+import { createPrivacyRouter } from './privacy/routes';
+import type { PrivacyRepository } from './privacy/types';
 
 export type AppDependencies = {
   repository: AuthRepository;
@@ -34,6 +39,8 @@ export type AppDependencies = {
   weeklyLeaderboard?: WeeklyLeaderboard;
   misconceptionRepository?: MisconceptionRepository;
   misconceptionQueue?: MisconceptionQueue;
+  peerDoubtRepository?: PeerDoubtRepository;
+  privacyRepository?: PrivacyRepository;
 };
 
 export function createApp(dependencies: AppDependencies) {
@@ -43,7 +50,7 @@ export function createApp(dependencies: AppDependencies) {
   app.use(
     cors({
       origin(origin, callback) {
-        callback(null, !origin || dependencies.config.corsOrigins.includes(origin));
+        callback(null, isAllowedOrigin(origin, dependencies.config));
       },
     }),
   );
@@ -97,6 +104,18 @@ export function createApp(dependencies: AppDependencies) {
     }),
   );
   app.use('/api/v1/auth', createAuthRouter(dependencies));
+  if (dependencies.privacyRepository && dependencies.objectStorage && dependencies.weeklyLeaderboard) {
+    app.use(
+      '/api/v1',
+      createPrivacyRouter({
+        repository: dependencies.privacyRepository,
+        redis: dependencies.redis,
+        config: dependencies.config,
+        storage: dependencies.objectStorage,
+        weeklyLeaderboard: dependencies.weeklyLeaderboard,
+      }),
+    );
+  }
   if (dependencies.contentService) {
     app.use(
       '/api/v1',
@@ -147,6 +166,16 @@ export function createApp(dependencies: AppDependencies) {
         redis: dependencies.redis,
         config: dependencies.config,
       }),
+    );
+  }
+  if (dependencies.peerDoubtRepository) {
+    app.use(
+      '/api/v1',
+      createPeerDoubtRouter(
+        dependencies.peerDoubtRepository,
+        dependencies.redis,
+        dependencies.config,
+      ),
     );
   }
   app.use((_request, response) => {

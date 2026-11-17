@@ -43,6 +43,7 @@ function fixture() {
       expect(owner).toBe('user-1'); expect(key).toBe('user-1/work.png');
       return { bytes: Buffer.from('fake image'), contentType: 'image/png', contentLength: 10 };
     }),
+    async deleteUserObjects() {},
   };
   const events: unknown[] = [];
   const emitter = { emitToUser: (_userId: string, _event: 'doubt:updated', payload: unknown) => events.push(payload) };

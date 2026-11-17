@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io' show File;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +21,7 @@ class _DoubtScreenState extends ConsumerState<DoubtScreen> {
   final _question = TextEditingController();
   final _followUp = TextEditingController();
   XFile? _image;
+  Uint8List? _imageBytes;
   DoubtSession? _doubt;
   Timer? _poller;
   io.Socket? _socket;
@@ -39,11 +40,25 @@ class _DoubtScreenState extends ConsumerState<DoubtScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final image = await ImagePicker().pickImage(
-      source: source,
-      imageQuality: 85,
-    );
-    if (image != null && mounted) setState(() => _image = image);
+    try {
+      final image = await ImagePicker().pickImage(
+        source: source,
+        imageQuality: 85,
+      );
+      if (image == null) return;
+      final bytes = await image.readAsBytes();
+      if (mounted) {
+        setState(() {
+          _image = image;
+          _imageBytes = bytes;
+          _error = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = 'Could not open that image. Try another file.');
+      }
+    }
   }
 
   Future<void> _submit() async {
@@ -67,6 +82,7 @@ class _DoubtScreenState extends ConsumerState<DoubtScreen> {
         _doubt = result;
         _question.clear();
         _image = null;
+        _imageBytes = null;
       });
       _watchDoubt(result.id);
     } catch (error) {
@@ -214,8 +230,8 @@ class _DoubtScreenState extends ConsumerState<DoubtScreen> {
               const SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  File(_image!.path),
+                child: Image.memory(
+                  _imageBytes!,
                   height: 180,
                   fit: BoxFit.contain,
                 ),
@@ -230,7 +246,10 @@ class _DoubtScreenState extends ConsumerState<DoubtScreen> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () => setState(() => _image = null),
+                    onPressed: () => setState(() {
+                      _image = null;
+                      _imageBytes = null;
+                    }),
                     tooltip: 'Remove image',
                     icon: const Icon(Icons.close),
                   ),

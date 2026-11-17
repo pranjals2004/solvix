@@ -8,6 +8,7 @@ import { HttpError } from '../http/errors';
 import type { RedisService } from '../infra/redis';
 import { createDoubtSchema, feedbackSchema, followupSchema, presignSchema } from './schemas';
 import type { DoubtQueue, DoubtRecord, DoubtRepository, PrivateObjectStorage } from './types';
+import { publicUploadEndpointForOrigin } from './public-upload-origin';
 
 const DOUBT_WINDOW_SECONDS = 600;
 
@@ -26,7 +27,17 @@ export function createDoubtRouter(dependencies: {
     if (!parsed.success) throw new HttpError(400, 'INVALID_UPLOAD', 'Choose a JPEG, PNG, or WebP image up to 5 MB.');
     const principal = authenticatedUser(request);
     await enforceUserLimit(dependencies.redis, principal.userId, dependencies.config.nodeEnv, 'uploads', 20);
-    const upload = await dependencies.storage.presignPut(principal.userId, parsed.data.contentType, parsed.data.contentLength);
+    const publicEndpoint = publicUploadEndpointForOrigin(
+      dependencies.config.s3PublicEndpoint,
+      request.header('origin'),
+      dependencies.config.nodeEnv,
+    );
+    const upload = await dependencies.storage.presignPut(
+      principal.userId,
+      parsed.data.contentType,
+      parsed.data.contentLength,
+      publicEndpoint,
+    );
     response.json(upload);
   }));
 

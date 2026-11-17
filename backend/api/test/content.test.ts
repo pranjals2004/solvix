@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { chunkText } from '../src/content/chunker';
 import { MlServiceEmbeddingClient } from '../src/content/embedding-client';
 import { parseImportBody } from '../src/content/import-parser';
-import type { ContentService } from '../src/content/service';
+import { ContentService } from '../src/content/service';
+import type { EmbeddingProvider } from '../src/content/embedding-client';
+import type { ContentRepository, NoteInput, PreparedNote } from '../src/content/types';
 import { PostgresContentRepository } from '../src/db/content-repository';
 
 const subjectId = '00000000-0000-4000-8000-000000000001';
@@ -27,23 +29,29 @@ describe('embedding client', () => {
     const client = new MlServiceEmbeddingClient('http://ml.test', async (_input, init) => {
       const payload = JSON.parse(String(init?.body)) as { texts: string[] };
       batches.push(payload.texts.length);
-      return new Response(JSON.stringify({
-        dimensions: 384,
-        embeddings: payload.texts.map(() => Array.from({ length: 384 }, () => 0.25)),
-      }), { status: 200 });
+      return new Response(
+        JSON.stringify({
+          dimensions: 384,
+          embeddings: payload.texts.map(() => Array.from({ length: 384 }, () => 0.25)),
+        }),
+        { status: 200 },
+      );
     });
 
-    const vectors = await client.embed(Array.from({ length: 35 }, (_, index) => `content ${index}`));
+    const vectors = await client.embed(
+      Array.from({ length: 35 }, (_, index) => `content ${index}`),
+    );
     expect(batches).toEqual([32, 3]);
     expect(vectors).toHaveLength(35);
     expect(vectors[0]).toHaveLength(384);
   });
 
   it('rejects invalid vector dimensions from the ML service', async () => {
-    const client = new MlServiceEmbeddingClient('http://ml.test', async () => new Response(
-      JSON.stringify({ dimensions: 384, embeddings: [[1, 2, 3]] }),
-      { status: 200 },
-    ));
+    const client = new MlServiceEmbeddingClient(
+      'http://ml.test',
+      async () =>
+        new Response(JSON.stringify({ dimensions: 384, embeddings: [[1, 2, 3]] }), { status: 200 }),
+    );
 
     await expect(client.embed(['content'])).rejects.toMatchObject({
       status: 502,
@@ -61,18 +69,23 @@ describe('content import parser', () => {
   } as unknown as ContentService;
 
   it('validates and maps JSON question records', async () => {
-    const result = await parseImportBody({
-      questions: [{
-        id: questionId,
-        subjectId,
-        topicId,
-        type: 'mcq',
-        statementLatex: 'Which value is largest?',
-        optionsJson: ['1', '2'],
-        correctAnswerJson: '2',
-        solutionLatex: 'Compare the two values.',
-      }],
-    }, content);
+    const result = await parseImportBody(
+      {
+        questions: [
+          {
+            id: questionId,
+            subjectId,
+            topicId,
+            type: 'mcq',
+            statementLatex: 'Which value is largest?',
+            optionsJson: ['1', '2'],
+            correctAnswerJson: '2',
+            solutionLatex: 'Compare the two values.',
+          },
+        ],
+      },
+      content,
+    );
 
     expect(result.questions).toHaveLength(1);
     expect(result.questions[0]?.id).toBe(questionId);
@@ -81,39 +94,88 @@ describe('content import parser', () => {
   });
 
   it('resolves CSV slugs and rejects unknown topic references', async () => {
-    const result = await parseImportBody({
-      questionsCsv: [
-        'subjectSlug,topicSlug,type,statementLatex,optionsJson,correctAnswerJson,natTolerance,solutionLatex,isPyq,pyqYear,difficultyRating',
-        'dsa,arrays,mcq,"Pick one","[""A"",""B""]","""A""",,A is correct,false,,1000',
-      ].join('\n'),
-    }, content);
+    const result = await parseImportBody(
+      {
+        questionsCsv: [
+          'subjectSlug,topicSlug,type,statementLatex,optionsJson,correctAnswerJson,natTolerance,solutionLatex,isPyq,pyqYear,difficultyRating',
+          'dsa,arrays,mcq,"Pick one","[""A"",""B""]","""A""",,A is correct,false,,1000',
+        ].join('\n'),
+      },
+      content,
+    );
 
     expect(result.questions[0]?.input.subjectId).toBe(subjectId);
     expect(result.questions[0]?.input.topicId).toBe(topicId);
-    await expect(parseImportBody({
-      notesCsv: 'subjectSlug,topicSlug,title,content\nmissing,topic,Title,Text',
-    }, content)).rejects.toMatchObject({ status: 400, code: 'INVALID_IMPORT' });
+    await expect(
+      parseImportBody(
+        {
+          notesCsv: 'subjectSlug,topicSlug,title,content\nmissing,topic,Title,Text',
+        },
+        content,
+      ),
+    ).rejects.toMatchObject({ status: 400, code: 'INVALID_IMPORT' });
+  });
+});
+
+describe('note import embedding', () => {
+  it('embeds clearly labelled demo notes before repository persistence', async () => {
+    const noteInput: NoteInput = {
+      subjectId,
+      topicId,
+      title: '[DEMO] Processes and threads',
+      content:
+        'DEMO STUDY MATERIAL — review before relying on it. Threads share a process address space.',
+    };
+    let embeddedTexts: string[] = [];
+    let savedNotes: PreparedNote[] = [];
+    const repository = {
+      importContent: async (_questions: unknown[], notes: PreparedNote[]) => {
+        savedNotes = notes;
+        return { questions: 0, notes: notes.length };
+      },
+    } as unknown as ContentRepository;
+    const embeddings: EmbeddingProvider = {
+      embed: async (texts) => {
+        embeddedTexts = texts;
+        return texts.map(() => Array.from({ length: 384 }, () => 0.25));
+      },
+    };
+
+    const result = await new ContentService(repository, embeddings).importContent(
+      [],
+      [{ id: questionId, input: noteInput }],
+    );
+
+    expect(result).toEqual({ questions: 0, notes: 1 });
+    expect(embeddedTexts.join(' ')).toContain('DEMO STUDY MATERIAL');
+    expect(savedNotes[0]).toMatchObject({ id: questionId, input: noteInput });
+    expect(savedNotes[0]?.chunks[0]).toMatchObject({
+      chunkIndex: 0,
+      embedding: Array.from({ length: 384 }, () => 0.25),
+    });
   });
 });
 
 describe('public question projection', () => {
   it('does not expose the answer key or worked solution', async () => {
-    const rows = [{
-      id: questionId,
-      subject_id: subjectId,
-      topic_id: topicId,
-      type: 'mcq',
-      statement_latex: 'Choose the answer.',
-      options_json: ['A', 'B'],
-      correct_answer_json: 'A',
-      nat_tolerance: null,
-      solution_latex: 'A is correct because...',
-      is_pyq: false,
-      pyq_year: null,
-      difficulty_rating: 1000,
-      attempt_count: 0,
-      created_at: new Date(),
-    }];
+    const rows = [
+      {
+        id: questionId,
+        subject_id: subjectId,
+        topic_id: topicId,
+        type: 'mcq',
+        statement_latex: 'Choose the answer.',
+        options_json: ['A', 'B'],
+        correct_answer_json: 'A',
+        nat_tolerance: null,
+        solution_latex: 'A is correct because...',
+        is_pyq: false,
+        pyq_year: null,
+        difficulty_rating: 1000,
+        attempt_count: 0,
+        created_at: new Date(),
+      },
+    ];
     const pool = {
       query: async () => ({ rows }),
     } as unknown as ConstructorParameters<typeof PostgresContentRepository>[0];

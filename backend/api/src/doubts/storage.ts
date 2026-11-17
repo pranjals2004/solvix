@@ -1,5 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { AppConfig } from '../config/env';
 import type { PrivateObjectStorage, UploadObject } from './types';
@@ -11,34 +18,37 @@ export class S3PrivateObjectStorage implements PrivateObjectStorage {
   private readonly client: S3Client;
   private readonly presignClient: S3Client;
   private readonly bucket: string;
+  private readonly publicEndpoint: string;
+  private readonly region: string;
+  private readonly accessKey: string;
+  private readonly secretKey: string;
 
   constructor(config: AppConfig) {
-    this.client = new S3Client({
-      region: config.s3Region,
-      endpoint: config.s3Endpoint,
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: config.s3AccessKey,
-        secretAccessKey: config.s3SecretKey,
-      },
-    });
-    this.presignClient = new S3Client({
-      region: config.s3Region,
-      endpoint: config.s3PublicEndpoint,
-      forcePathStyle: true,
-      credentials: { accessKeyId: config.s3AccessKey, secretAccessKey: config.s3SecretKey },
-    });
+    this.region = config.s3Region;
+    this.accessKey = config.s3AccessKey;
+    this.secretKey = config.s3SecretKey;
+    this.publicEndpoint = config.s3PublicEndpoint;
+    this.client = this.createClient(config.s3Endpoint);
+    this.presignClient = this.createClient(this.publicEndpoint);
     this.bucket = config.s3Bucket;
   }
 
-  async presignPut(userId: string, contentType: string, contentLength: number) {
+  async presignPut(userId: string, contentType: string, contentLength: number, publicEndpoint?: string) {
     if (!ALLOWED_TYPES.has(contentType) || contentLength <= 0 || contentLength > MAX_IMAGE_BYTES) {
       throw new Error('Unsupported image upload.');
     }
     const imageKey = `${userId}/${randomUUID()}`;
     const command = new PutObjectCommand({ Bucket: this.bucket, Key: imageKey, ContentType: contentType, ContentLength: contentLength });
     const expiresIn = 300;
-    const uploadUrl = await getSignedUrl(this.presignClient, command, { expiresIn });
+    const signingClient = publicEndpoint && publicEndpoint !== this.publicEndpoint
+      ? this.createClient(publicEndpoint)
+      : this.presignClient;
+    let uploadUrl: string;
+    try {
+      uploadUrl = await getSignedUrl(signingClient, command, { expiresIn });
+    } finally {
+      if (signingClient !== this.presignClient) signingClient.destroy();
+    }
     return { imageKey, uploadUrl, expiresIn };
   }
 
@@ -56,6 +66,40 @@ export class S3PrivateObjectStorage implements PrivateObjectStorage {
     if (bytes.length > MAX_IMAGE_BYTES) throw new Error('Uploaded image exceeds the size limit.');
     if (!matchesImageSignature(bytes, contentType)) throw new Error('Uploaded content does not match its image type.');
     return { bytes, contentType, contentLength: bytes.length };
+  }
+
+  async deleteUserObjects(userId: string): Promise<void> {
+    const prefix = `${userId}/`;
+    let continuationToken: string | undefined;
+    do {
+      const page = await this.client.send(new ListObjectsV2Command({
+        Bucket: this.bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      }));
+      const objects = (page.Contents ?? [])
+        .map((object) => object.Key)
+        .filter((key): key is string => Boolean(key));
+      if (objects.length > 0) {
+        const deleted = await this.client.send(new DeleteObjectsCommand({
+          Bucket: this.bucket,
+          Delete: { Objects: objects.map((Key) => ({ Key })), Quiet: true },
+        }));
+        if (deleted.Errors?.length) {
+          throw new Error('One or more private upload objects could not be deleted.');
+        }
+      }
+      continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (continuationToken);
+  }
+
+  private createClient(endpoint: string): S3Client {
+    return new S3Client({
+      region: this.region,
+      endpoint,
+      forcePathStyle: true,
+      credentials: { accessKeyId: this.accessKey, secretAccessKey: this.secretKey },
+    });
   }
 }
 

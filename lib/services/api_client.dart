@@ -1,12 +1,16 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gate_resolver/data/models/api_content.dart';
 import 'package:gate_resolver/data/models/auth_session.dart';
+import 'package:gate_resolver/data/models/peer_doubt.dart';
 
 const accessTokenKey = 'solvix_access_token';
 const defaultApiBaseUrl = String.fromEnvironment(
   'SOLVIX_API_URL',
-  defaultValue: 'http://10.0.2.2:3000/api/v1',
+  defaultValue: kIsWeb
+      ? 'http://localhost:3000/api/v1'
+      : 'http://10.0.2.2:3000/api/v1',
 );
 
 abstract interface class TokenStore {
@@ -78,6 +82,15 @@ class AuthApi {
   Future<void> logout() async {
     await _dio.post<void>('/auth/logout');
   }
+
+  Future<Map<String, dynamic>> exportMyData() async {
+    final response = await _dio.get<Map<String, dynamic>>('/auth/me/export');
+    return response.data!;
+  }
+
+  Future<void> deleteMyAccount() async {
+    await _dio.delete<void>('/auth/me', data: {'confirmation': 'DELETE'});
+  }
 }
 
 class SolvixApi {
@@ -114,6 +127,16 @@ class SolvixApi {
     );
     return (response.data!['questions'] as List<dynamic>)
         .map((value) => ApiQuestion.fromJson(value as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<ApiNote>> getNotes(String topicId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/notes',
+      queryParameters: {'topicId': topicId},
+    );
+    return (response.data!['notes'] as List<dynamic>)
+        .map((value) => ApiNote.fromJson(value as Map<String, dynamic>))
         .toList();
   }
 
@@ -159,6 +182,49 @@ class SolvixApi {
           (value) => MisconceptionHint.fromJson(value as Map<String, dynamic>),
         )
         .toList();
+  }
+
+  Future<List<PeerThread>> getPeerThreads() async {
+    final response = await _dio.get<Map<String, dynamic>>('/community/threads');
+    return (response.data!['threads'] as List<dynamic>)
+        .map((value) => PeerThread.fromJson(value as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<PeerThread> getPeerThread(String threadId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/community/threads/$threadId',
+    );
+    return PeerThread.fromJson(
+      response.data!['thread'] as Map<String, dynamic>,
+    );
+  }
+
+  Future<PeerThread> createPeerThread({
+    required String title,
+    required String body,
+    required bool anonymous,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/community/threads',
+      data: {'title': title, 'body': body, 'anonymous': anonymous},
+    );
+    return PeerThread.fromJson(
+      response.data!['thread'] as Map<String, dynamic>,
+    );
+  }
+
+  Future<PeerThread> replyToPeerThread({
+    required String threadId,
+    required String body,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/community/threads/$threadId/replies',
+      data: {'body': body},
+    );
+    return PeerThread.fromJson(
+      response.data!['thread'] as Map<String, dynamic>,
+    );
   }
 }
 

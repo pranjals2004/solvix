@@ -20,6 +20,8 @@ import { RedisLeaderboardService } from './leaderboard/service';
 import { PostgresPracticeRepository, PostgresProgressRepository } from './db/practice-repository';
 import { PostgresMisconceptionRepository } from './db/misconception-repository';
 import { BullMisconceptionQueue } from './misconceptions/queue';
+import { PostgresPeerDoubtRepository } from './db/peer-doubt-repository';
+import { PostgresPrivacyRepository } from './db/privacy-repository';
 
 dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
@@ -66,6 +68,8 @@ async function start() {
       misconceptionQueue,
       objectStorage: new S3PrivateObjectStorage(config),
       weeklyLeaderboard: leaderboard,
+      peerDoubtRepository: new PostgresPeerDoubtRepository(pool),
+      privacyRepository: new PostgresPrivacyRepository(pool),
     });
     server = createServer(app);
     socketServer = attachSocketServer(server, config, redis);

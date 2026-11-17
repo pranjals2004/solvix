@@ -38,6 +38,10 @@ export class IoredisService implements RedisService {
     await this.client.set(key, value, 'EX', expiresInSeconds);
   }
 
+  async delete(key: string): Promise<void> {
+    await this.client.del(key);
+  }
+
   async sendCommand(...args: string[]): Promise<RedisValue | RedisValue[]> {
     const [command, ...parameters] = args;
     if (!command) throw new Error('Redis command is required.');

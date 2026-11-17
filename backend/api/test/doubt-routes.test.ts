@@ -85,6 +85,7 @@ function buildApp() {
       return { imageKey: `${owner}/image-1`, uploadUrl: 'http://minio/upload', expiresIn: 300 };
     },
     async getImage() { return { bytes: Buffer.from('image'), contentType: 'image/png', contentLength: 5 }; },
+    async deleteUserObjects() {},
   };
   const app = createApp({ repository: auth, redis, config, doubtRepository: doubts, doubtQueue: queue, objectStorage: storage });
   return { app, doubts, queue, storage };

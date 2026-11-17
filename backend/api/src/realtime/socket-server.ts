@@ -4,11 +4,17 @@ import Redis from 'ioredis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { Server } from 'socket.io';
 import type { AppConfig } from '../config/env';
+import { isAllowedOrigin } from '../http/cors-origin';
 import type { RedisService } from '../infra/redis';
 
 export function attachSocketServer(server: HttpServer, config: AppConfig, redisService: RedisService): Server {
   const io = new Server(server, {
-    cors: { origin: config.corsOrigins, methods: ['GET', 'POST'] },
+    cors: {
+      origin(origin, callback) {
+        callback(null, isAllowedOrigin(origin, config));
+      },
+      methods: ['GET', 'POST'],
+    },
     path: '/socket.io',
   });
   const pubClient = new Redis(config.redisUrl, { maxRetriesPerRequest: null });

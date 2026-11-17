@@ -43,5 +43,6 @@ export interface WeeklyLeaderboard {
   }>;
   recordCount(userId: string, weekStart: string): Promise<void>;
   finalizeWeek(weekStart: string): Promise<void>;
+  removeUserFromCurrentWeek(userId: string): Promise<void>;
   listFlaggedAccounts(limit: number): Promise<FlaggedAccount[]>;
 }

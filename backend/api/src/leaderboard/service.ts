@@ -86,6 +86,11 @@ export class RedisLeaderboardService implements WeeklyLeaderboard {
     await this.redis.sendCommand('DEL', leaderboardKey(weekStart));
   }
 
+  async removeUserFromCurrentWeek(userId: string): Promise<void> {
+    const weekStart = weekStartFor(this.now(), this.timeZone);
+    await this.redis.sendCommand('ZREM', leaderboardKey(weekStart), userId);
+  }
+
   async listFlaggedAccounts(limit: number) {
     return this.repository.listFlaggedUsers(limit);
   }

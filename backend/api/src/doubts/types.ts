@@ -72,8 +72,9 @@ export interface DoubtQueue {
 
 export type UploadObject = { bytes: Buffer; contentType: string; contentLength: number };
 export interface PrivateObjectStorage {
-  presignPut(userId: string, contentType: string, contentLength: number): Promise<{ imageKey: string; uploadUrl: string; expiresIn: number }>;
+  presignPut(userId: string, contentType: string, contentLength: number, publicEndpoint?: string): Promise<{ imageKey: string; uploadUrl: string; expiresIn: number }>;
   getImage(userId: string, imageKey: string): Promise<UploadObject>;
+  deleteUserObjects(userId: string): Promise<void>;
 }
 
 export type LLMMessage = { role: 'user' | 'assistant'; content: string };

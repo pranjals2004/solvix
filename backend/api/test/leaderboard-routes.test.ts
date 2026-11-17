@@ -41,6 +41,7 @@ function buildApp() {
     },
     async recordCount() {},
     async finalizeWeek() {},
+    async removeUserFromCurrentWeek() {},
     async listFlaggedAccounts(limit) {
       expect(limit).toBe(50);
       return [{ userId, name: 'A Student', email: 'student@example.edu', flaggedAt: new Date('2026-11-16T10:00:00Z') }];

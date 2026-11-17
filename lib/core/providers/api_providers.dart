@@ -104,6 +104,12 @@ class AuthController extends StateNotifier<AsyncValue<AuthSession?>> {
       state = const AsyncData(null);
     }
   }
+
+  Future<void> deleteAccount() async {
+    await _api.deleteMyAccount();
+    await _tokenStore.clear();
+    state = const AsyncData(null);
+  }
 }
 
 final authControllerProvider =
@@ -123,8 +129,14 @@ final topicsProvider = FutureProvider.family<List<ApiTopic>, String>(
 final questionsProvider = FutureProvider.family<List<ApiQuestion>, String>(
   (ref, topicId) => ref.watch(solvixApiProvider).getQuestions(topicId: topicId),
 );
+final notesProvider = FutureProvider.family<List<ApiNote>, String>(
+  (ref, topicId) => ref.watch(solvixApiProvider).getNotes(topicId),
+);
 final progressProvider = FutureProvider<ProgressData>(
   (ref) => ref.watch(solvixApiProvider).getProgress(),
+);
+final peerThreadsProvider = FutureProvider(
+  (ref) => ref.watch(solvixApiProvider).getPeerThreads(),
 );
 final misconceptionHintsProvider = FutureProvider<List<MisconceptionHint>>(
   (ref) => ref.watch(solvixApiProvider).getMisconceptionHints(),
