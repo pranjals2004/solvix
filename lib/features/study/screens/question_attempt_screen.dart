@@ -98,6 +98,7 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final question = widget.question;
+    final correctLabels = _answerLabels(_result?.correctAnswer);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -137,10 +138,6 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
                         ? 'SHORT ANSWER'
                         : question.type.toUpperCase(),
                   ),
-                  if (question.isImportedDraft) ...[
-                    const SizedBox(width: 8),
-                    const _TypeBadge(type: 'IMPORTED DRAFT'),
-                  ],
                   if (question.isPyq) ...[
                     const SizedBox(width: 8),
                     _TypeBadge(type: 'GATE ${question.pyqYear}'),
@@ -156,18 +153,9 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
               ),
               const SizedBox(height: 8),
               MathText(
-                question.displayStatementLatex,
+                question.statementLatex,
                 style: theme.textTheme.titleMedium?.copyWith(height: 1.45),
               ),
-              if (question.isImportedDraft) ...[
-                const SizedBox(height: 10),
-                Text(
-                  'Draft imported from the supplied CSV. Review its answer before relying on it; the CSV did not include multiple-choice options.',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
               const SizedBox(height: 24),
               if (_isNumeric || _isShortAnswer)
                 TextField(
@@ -195,6 +183,10 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
+                if (question.options.isEmpty)
+                  const Text(
+                    'No answer options are available for this question.',
+                  ),
                 for (var index = 0; index < question.options.length; index++)
                   _OptionTile(
                     letter: _letter(index),
@@ -203,6 +195,8 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
                         ? _selectedOptions.contains(index)
                         : _singleChoice == index,
                     multiple: _isMultipleChoice,
+                    submitted: _result != null,
+                    correctOption: correctLabels.contains(_letter(index)),
                     onTap: _result != null || _submitting
                         ? null
                         : () => setState(() {
@@ -290,6 +284,8 @@ class _OptionTile extends StatelessWidget {
     required this.text,
     required this.selected,
     required this.multiple,
+    required this.submitted,
+    required this.correctOption,
     required this.onTap,
   });
 
@@ -297,18 +293,25 @@ class _OptionTile extends StatelessWidget {
   final String text;
   final bool selected;
   final bool multiple;
+  final bool submitted;
+  final bool correctOption;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final color = selected
+    final color = submitted && correctOption
+        ? AppColors.success
+        : submitted && selected
+        ? AppColors.error
+        : selected
         ? AppColors.primaryLight
         : Theme.of(context).colorScheme.outlineVariant;
+    final emphasized = selected || (submitted && correctOption);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: selected ? AppColors.primaryLight : color),
+        side: BorderSide(color: color),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -319,19 +322,27 @@ class _OptionTile extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 15,
-                backgroundColor: selected
-                    ? AppColors.primaryLight
-                    : color.withOpacity(0.15),
-                foregroundColor: selected
+                backgroundColor: emphasized ? color : color.withOpacity(0.15),
+                foregroundColor: emphasized
                     ? Colors.white
                     : Theme.of(context).colorScheme.onSurface,
-                child: multiple && selected
+                child: submitted && correctOption
+                    ? const Icon(Icons.check, size: 16)
+                    : multiple && selected
                     ? const Icon(Icons.check, size: 16)
                     : Text(letter, style: const TextStyle(fontSize: 12)),
               ),
               const SizedBox(width: 12),
               Expanded(child: MathText(text)),
-              if (!multiple && selected)
+              if (submitted && correctOption)
+                const Icon(
+                  Icons.check_circle,
+                  color: AppColors.success,
+                  size: 19,
+                )
+              else if (submitted && selected)
+                const Icon(Icons.cancel, color: AppColors.error, size: 19)
+              else if (!multiple && selected)
                 const Icon(
                   Icons.check_circle,
                   color: AppColors.primaryLight,
@@ -375,6 +386,18 @@ String _formatCorrectAnswer(Object? rawAnswer, ApiQuestion question) {
     }
   }
   return text;
+}
+
+Set<String> _answerLabels(Object? rawAnswer) {
+  var answer = rawAnswer;
+  if (answer is Map) {
+    answer = answer['selected'] ?? answer['answer'] ?? answer['value'];
+  }
+  if (answer is String) return {answer.trim().toUpperCase()};
+  if (answer is List) {
+    return answer.map((item) => item.toString().trim().toUpperCase()).toSet();
+  }
+  return const {};
 }
 
 class _ResultCard extends StatelessWidget {
@@ -421,15 +444,14 @@ class _ResultCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            if (!result.isCorrect && result.correctAnswer != null)
+            if (result.correctAnswer != null)
               Text(
                 'Correct answer: ${_formatCorrectAnswer(result.correctAnswer, question)}',
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
-            if (!result.isCorrect && result.correctAnswer != null)
-              const SizedBox(height: 6),
+            if (result.correctAnswer != null) const SizedBox(height: 6),
             Text(
               'Confidence recorded: $confidence / 5',
               style: Theme.of(context).textTheme.bodySmall,

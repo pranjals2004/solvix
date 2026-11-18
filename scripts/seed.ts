@@ -77,7 +77,12 @@ type ImportedCsvRow = {
   record_type: string;
   item_no: string;
   content: string;
-  answer: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: string;
+  solution: string;
 };
 
 const demoNoteSeeds = [
@@ -185,35 +190,23 @@ async function seed() {
       });
     }
 
-    const parsedCsv = parse(
-      readFileSync(resolve(__dirname, '../content/import/Solvix_data.csv'), 'utf8'),
-      { skip_empty_lines: true, trim: true, bom: true, relax_column_count: true },
-    ) as string[][];
-    const expectedCsvHeader = ['subject_id', 'subject', 'record_type', 'item_no', 'content', 'answer'];
-    const csvHeader = parsedCsv.shift();
-    if (!csvHeader || csvHeader.join('|') !== expectedCsvHeader.join('|')) {
-      throw new Error('Unexpected header in content/import/Solvix_data.csv.');
+    const importedRows = parse(
+      readFileSync(resolve(__dirname, '../content/import/gate_cse_subjects_v2.csv'), 'utf8'),
+      { columns: true, skip_empty_lines: true, trim: true, bom: true },
+    ) as ImportedCsvRow[];
+    const expectedCsvHeader = [
+      'subject_id', 'subject', 'record_type', 'item_no', 'content',
+      'option_a', 'option_b', 'option_c', 'option_d', 'correct_option', 'solution',
+    ];
+    if (Object.keys(importedRows[0] ?? {}).join('|') !== expectedCsvHeader.join('|')) {
+      throw new Error('Unexpected header in content/import/gate_cse_subjects_v2.csv.');
     }
-    const importedRows: ImportedCsvRow[] = parsedCsv.map((fields, index) => {
-      if (fields.length < expectedCsvHeader.length) {
-        throw new Error(`Incomplete CSV record at data row ${index + 2}.`);
-      }
-      return {
-        subject_id: fields[0]!,
-        subject: fields[1]!,
-        record_type: fields[2]!,
-        item_no: fields[3]!,
-        content: fields[4]!,
-        // The supplied file has an unquoted comma in a text answer; preserve the trailing fields.
-        answer: fields.slice(5).join(', ').trim(),
-      };
-    });
     let importedQuestionCount = 0;
     let importedNoteCount = 0;
     for (const row of importedRows) {
       const mapping = importedCsvSubjects[row.subject_id];
       if (!mapping || !row.subject || !row.content) {
-        throw new Error(`Invalid row in content/import/Solvix_data.csv: ${row.subject_id}/${row.item_no}`);
+        throw new Error(`Invalid row in content/import/gate_cse_subjects_v2.csv: ${row.subject_id}/${row.item_no}`);
       }
       const subjectId = topicIds.get(`${mapping.subjectSlug}/__subject__`);
       const topicId = topicIds.get(`${mapping.subjectSlug}/${mapping.topicSlug}`);
@@ -222,18 +215,25 @@ async function seed() {
       }
       const reference = `user-solvix-csv-${row.subject_id}-${row.item_no}`;
       if (row.record_type === 'question') {
-        if (!row.answer) throw new Error(`Missing CSV answer for ${reference}`);
+        const options = [row.option_a, row.option_b, row.option_c, row.option_d];
+        if (
+          options.some((option) => !option) ||
+          !['A', 'B', 'C', 'D'].includes(row.correct_option.toUpperCase()) ||
+          !row.solution
+        ) {
+          throw new Error(`Question ${reference} needs four options, a correct option, and a solution.`);
+        }
         questions.push({
           id: deterministicUuid(reference),
           input: {
             subjectId,
             topicId,
-            type: 'short',
-            statementLatex: `IMPORTED DRAFT — ${row.content}`,
-            optionsJson: [],
-            correctAnswerJson: row.answer,
+            type: 'mcq',
+            statementLatex: row.content,
+            optionsJson: options,
+            correctAnswerJson: row.correct_option.toUpperCase(),
             natTolerance: null,
-            solutionLatex: `IMPORTED ANSWER — ${row.answer}\n\nThe supplied CSV did not include worked solution steps. Verify this answer before using this item for assessment.`,
+            solutionLatex: row.solution,
             isPyq: false,
             pyqYear: null,
             difficultyRating: 1000,
@@ -246,13 +246,13 @@ async function seed() {
           input: {
             subjectId,
             topicId,
-            title: `[IMPORTED DRAFT] ${row.subject} overview`,
-            content: `IMPORTED DRAFT STUDY MATERIAL — verify against an instructor-approved source before relying on it.\n\n${row.content}`,
+            title: `${row.subject} overview`,
+            content: row.content,
           },
         });
         importedNoteCount += 1;
       } else {
-        throw new Error(`Unknown record_type in content/import/Solvix_data.csv: ${row.record_type}`);
+        throw new Error(`Unknown record_type in content/import/gate_cse_subjects_v2.csv: ${row.record_type}`);
       }
     }
 
@@ -260,7 +260,7 @@ async function seed() {
     const content = new ContentService(repository, new MlServiceEmbeddingClient(config.mlServiceUrl));
     const result = await content.importContent(questions, notes);
     process.stdout.write(
-      `Upserted ${result.questions} questions (${importedQuestionCount} imported short-answer drafts) and ${result.notes} notes (${importedNoteCount} imported drafts).\n`,
+      `Upserted ${result.questions} questions (${importedQuestionCount} multiple-choice questions) and ${result.notes} notes.\n`,
     );
   } finally {
     client.release();

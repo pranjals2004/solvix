@@ -92,4 +92,4 @@
 
 ## Imported question dataset
 
-- **Keep the supplied question/answer CSV as short-answer practice because it has no option choices or worked solutions.** Do not invent distractors or claim it is a PYQ source. Imported questions and notes are labelled draft content, and short-answer grading ignores case and repeated whitespace while otherwise matching the stored answer exactly.
+- **Use the supplied v2 dataset's four choices, answer key, and solution as MCQ content.** Keep the questions as practice content rather than claiming they are official PYQs. Do not add dataset provenance labels to the student-facing question text. Return and highlight the correct choice only after submission.

@@ -228,13 +228,11 @@ class TopicQuestionsScreen extends ConsumerWidget {
                         horizontal: 16,
                         vertical: 10,
                       ),
-                      title: MathText(question.displayStatementLatex),
+                      title: MathText(question.statementLatex),
                       subtitle: Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
-                          question.isImportedDraft
-                              ? 'IMPORTED DRAFT · ${question.type == 'short' ? 'SHORT ANSWER' : question.type.toUpperCase()}'
-                              : question.isPyq
+                          question.isPyq
                               ? 'GATE ${question.pyqYear} · ${question.type.toUpperCase()}'
                               : question.type == 'short'
                               ? 'SHORT ANSWER'
