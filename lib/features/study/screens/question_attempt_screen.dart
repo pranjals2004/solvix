@@ -132,10 +132,19 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
             children: [
               Row(
                 children: [
-                  _TypeBadge(type: question.type),
-                  const SizedBox(width: 8),
-                  if (question.isPyq)
+                  _TypeBadge(
+                    type: question.type == 'short'
+                        ? 'SHORT ANSWER'
+                        : question.type.toUpperCase(),
+                  ),
+                  if (question.isImportedDraft) ...[
+                    const SizedBox(width: 8),
+                    const _TypeBadge(type: 'IMPORTED DRAFT'),
+                  ],
+                  if (question.isPyq) ...[
+                    const SizedBox(width: 8),
                     _TypeBadge(type: 'GATE ${question.pyqYear}'),
+                  ],
                 ],
               ),
               const SizedBox(height: 18),
@@ -147,9 +156,18 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
               ),
               const SizedBox(height: 8),
               MathText(
-                question.statementLatex,
+                question.displayStatementLatex,
                 style: theme.textTheme.titleMedium?.copyWith(height: 1.45),
               ),
+              if (question.isImportedDraft) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'Draft imported from the supplied CSV. Review its answer before relying on it; the CSV did not include multiple-choice options.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               if (_isNumeric || _isShortAnswer)
                 TextField(
@@ -161,8 +179,9 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
                         )
                       : TextInputType.text,
                   decoration: const InputDecoration(
-                    labelText: 'Your answer',
+                    labelText: 'Type your answer',
                     border: OutlineInputBorder(),
+                    helperText: 'This question is graded as a short answer.',
                   ),
                   onChanged: (_) => setState(() {}),
                 )

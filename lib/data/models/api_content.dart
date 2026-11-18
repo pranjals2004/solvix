@@ -80,6 +80,13 @@ class ApiQuestion {
   final int? pyqYear;
   final int difficultyRating;
 
+  static const _importedDraftPrefix = 'IMPORTED DRAFT — ';
+
+  bool get isImportedDraft => statementLatex.startsWith(_importedDraftPrefix);
+  String get displayStatementLatex => isImportedDraft
+      ? statementLatex.substring(_importedDraftPrefix.length)
+      : statementLatex;
+
   factory ApiQuestion.fromJson(Map<String, dynamic> json) => ApiQuestion(
     id: json['id'] as String,
     subjectId: json['subjectId'] as String,
