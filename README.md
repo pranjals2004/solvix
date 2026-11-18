@@ -12,7 +12,7 @@ Solvix is an AI-assisted adaptive learning platform for GATE Computer Science an
 6. Install ML dependencies: `python -m pip install -r ml-service/requirements.txt`. To use research reports, also install `python -m pip install -r scripts/requirements.txt`.
 7. Apply schema migrations: `npm run db:migrate`.
 8. In a terminal with `.venv` activated, start the ML service: `python -m uvicorn main:app --reload --app-dir ml-service`.
-9. Optionally add clearly labelled demo study notes and synthetic placeholder questions: `npm run db:seed`. This command uses the ML service to generate note and solution embeddings; it does not create authentic GATE questions.
+9. Seed clearly labelled demo MCQs, demo study notes, and the provided CSV's draft short-answer questions with `npm run db:seed`. The CSV is stored at `content/import/Solvix_data.csv`. This updates existing local seed records in place and uses the ML service to generate note and solution embeddings; imported CSV questions have no answer options or worked steps, and all seed content needs review before classroom or research use.
 10. Start the API: `npm run dev:api`.
 11. For doubt resolution, start the separate worker in another terminal: `npm run dev:worker`. Keep `LLM_MODE=mock` for deterministic local replies.
 12. In another terminal, run the Flutter app from the repository root with `flutter run --dart-define=SOLVIX_API_URL=http://10.0.2.2:3000/api/v1` on an Android emulator. For the iOS simulator, use `http://localhost:3000/api/v1`; for Chrome, use `flutter run -d chrome --dart-define=SOLVIX_API_URL=http://localhost:3000/api/v1`; for a physical phone, use the development machine's LAN address.

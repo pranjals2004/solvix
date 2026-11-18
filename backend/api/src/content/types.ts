@@ -1,4 +1,4 @@
-export type QuestionType = 'mcq' | 'msq' | 'nat';
+export type QuestionType = 'mcq' | 'msq' | 'nat' | 'short';
 
 export type SubjectRecord = { id: string; name: string; slug: string };
 export type TopicRecord = { id: string; subjectId: string; name: string; slug: string };

@@ -1,0 +1,232 @@
+subject_id,subject,record_type,item_no,content,answer
+ENGMATH,Engineering Mathematics,note,0,"Engineering Mathematics provides the mathematical base for GATE CSE. Discrete Mathematics covers propositional and predicate logic, sets, relations, functions, groups, lattices, graph theory (connectivity, coloring, trees, matching) and combinatorics (permutations, combinations, pigeonhole principle). Linear Algebra focuses on matrices, determinants, rank, systems of linear equations, eigenvalues and eigenvectors. Calculus covers limits, continuity, differentiation, maxima and minima, integration and mean value theorems. Probability and Statistics includes conditional probability, Bayes theorem, random variables, expectation, variance and standard distributions such as binomial and Poisson. Practice numerical problems daily and memorize standard results such as Cayley formula for spanning trees.",
+ENGMATH,Engineering Mathematics,question,1,"What is the rank of the matrix [[1,2],[2,4]]?",1
+ENGMATH,Engineering Mathematics,question,2,"How many spanning trees does the complete graph K4 have?",16
+ENGMATH,Engineering Mathematics,question,3,"How many edges does the complete graph K5 have?",10
+ENGMATH,Engineering Mathematics,question,4,"What is the value of C(6,2)?",15
+ENGMATH,Engineering Mathematics,question,5,"What is the probability of at least one head in 3 fair coin tosses?",7/8
+ENGMATH,Engineering Mathematics,question,6,"What are the eigenvalues of the matrix [[2,0],[0,3]]?",2 and 3
+ENGMATH,Engineering Mathematics,question,7,"What is the determinant of the matrix [[1,2],[3,4]]?",-2
+ENGMATH,Engineering Mathematics,question,8,"What is the limit of sin(x)/x as x tends to 0?",1
+ENGMATH,Engineering Mathematics,question,9,"How many onto functions exist from a 3-element set to a 2-element set?",6
+ENGMATH,Engineering Mathematics,question,10,"What is the derivative of x^x?",x^x(1 + ln x)
+ENGMATH,Engineering Mathematics,question,11,"What is the value of the integral of x dx from 0 to 1?",1/2
+ENGMATH,Engineering Mathematics,question,12,"How many binary strings of length 4 have no two consecutive 1s?",8
+ENGMATH,Engineering Mathematics,question,13,"What is the expected value of a single roll of a fair die?",3.5
+ENGMATH,Engineering Mathematics,question,14,"How many groups of order 4 exist up to isomorphism?",2
+ENGMATH,Engineering Mathematics,question,15,"What is the chromatic number of the cycle graph C5?",3
+ENGMATH,Engineering Mathematics,question,16,"In how many ways can the letters of the word GATE be arranged?",24
+ENGMATH,Engineering Mathematics,question,17,"What is the variance of a Bernoulli random variable with parameter p?",p(1-p)
+ENGMATH,Engineering Mathematics,question,18,"What is the sum of all eigenvalues of a matrix equal to?",Trace of the matrix
+ENGMATH,Engineering Mathematics,question,19,"How many reflexive relations exist on a 3-element set?",64
+ENGMATH,Engineering Mathematics,question,20,"How many non-negative integer solutions does x+y+z=10 have?",66
+DL,Digital Logic,note,0,"Digital Logic deals with the design of combinational and sequential circuits. Combinational topics include Boolean algebra, logic gates, minimization using K-maps and Quine-McCluskey, adders, subtractors, multiplexers, decoders and encoders. Number systems and codes such as binary, octal, hexadecimal, 2's complement, BCD, Excess-3 and Gray code are essential. Sequential topics include latches, flip-flops (SR, JK, D, T), registers, counters (synchronous and asynchronous), finite state machines and the analysis of timing issues like setup, hold and race conditions. Memorize flip-flop characteristic equations and practice converting between number systems quickly, since many questions are straightforward once the representation is clear.",
+DL,Digital Logic,question,1,"What is the minimum number of NAND gates needed to implement a NOT gate?",1
+DL,Digital Logic,question,2,"How many distinct Boolean functions exist with 3 input variables?",256
+DL,Digital Logic,question,3,"What is the name of the canonical form that is a sum of minterms?",Sum of Products (SOP)
+DL,Digital Logic,question,4,"What is the 3-bit Gray code equivalent of binary 101?",111
+DL,Digital Logic,question,5,"What is the Excess-3 code for decimal 6?",1001
+DL,Digital Logic,question,6,"How many flip-flops are needed to build a mod-16 counter?",4
+DL,Digital Logic,question,7,"What is the Hamming distance between 1011 and 1101?",2
+DL,Digital Logic,question,8,"How many select lines are required for a 16-to-1 multiplexer?",4
+DL,Digital Logic,question,9,"What is the octal equivalent of binary 110101?",65
+DL,Digital Logic,question,10,"What is the hexadecimal equivalent of decimal 255?",FF
+DL,Digital Logic,question,11,"What is the 4-bit 2's complement of 1011?",0101
+DL,Digital Logic,question,12,"How many inputs does a full adder have?",3
+DL,Digital Logic,question,13,"How many address lines does a 1K x 8 ROM require?",10
+DL,Digital Logic,question,14,"What is the characteristic equation of a JK flip-flop?",Q+ = JQ' + K'Q
+DL,Digital Logic,question,15,"What is the forbidden input combination for an SR latch built with NOR gates?",S = R = 1
+DL,Digital Logic,question,16,"How many bits are needed to represent the decimal range 0 to 999 in BCD?",12
+DL,Digital Logic,question,17,"What is the maximum number of non-zero states in a 5-bit maximal-length LFSR?",31
+DL,Digital Logic,question,18,"What is the output of an XOR gate when both inputs are equal?",0
+DL,Digital Logic,question,19,"What is the sum output of a half adder with inputs A and B?",A XOR B
+DL,Digital Logic,question,20,"How many unused states does a mod-10 counter built with 4 flip-flops have?",6
+COA,Computer Organization and Architecture,note,0,"Computer Organization and Architecture explains how hardware executes programs. Key topics include machine instructions and addressing modes (immediate, direct, indirect, register, indexed, relative), the instruction cycle, and data representation including fixed-point and IEEE 754 floating point. Arithmetic covers ALU design, Booth algorithm for signed multiplication and restoring and non-restoring division. The memory hierarchy covers cache mapping (direct, associative, set-associative), replacement policies, write-through and write-back policies, and average memory access time. Pipelining topics include speedup, hazards (structural, data, control) and forwarding. Also study I/O techniques such as programmed I/O, interrupts and DMA, and control unit design using hardwired and microprogrammed approaches.",
+COA,Computer Organization and Architecture,question,1,"What is the formula for average memory access time?",Hit time + (miss rate x miss penalty)
+COA,Computer Organization and Architecture,question,2,"Which addressing mode places the operand directly inside the instruction?",Immediate addressing
+COA,Computer Organization and Architecture,question,3,"How many address bits are needed for a byte-addressable 4 GB memory?",32
+COA,Computer Organization and Architecture,question,4,"How many stages does the classic RISC pipeline have?",5
+COA,Computer Organization and Architecture,question,5,"What is the ideal speedup of a k-stage pipeline?",k
+COA,Computer Organization and Architecture,question,6,"Which addressing mode computes the effective address as PC plus an offset?",Relative addressing
+COA,Computer Organization and Architecture,question,7,"Name the three main types of pipeline hazards.","Structural, data and control hazards"
+COA,Computer Organization and Architecture,question,8,"How many sets does a 64 KB, 4-way set-associative cache with 64-byte blocks have?",256
+COA,Computer Organization and Architecture,question,9,"Which algorithm is used for signed multiplication of binary numbers?",Booth algorithm
+COA,Computer Organization and Architecture,question,10,"What is the exponent bias of IEEE 754 single precision?",127
+COA,Computer Organization and Architecture,question,11,"How many bits are in the exponent field of IEEE 754 double precision?",11
+COA,Computer Organization and Architecture,question,12,"Which register holds the address of the next instruction to be fetched?",Program Counter (PC)
+COA,Computer Organization and Architecture,question,13,"Which cache write policy uses a dirty bit?",Write-back
+COA,Computer Organization and Architecture,question,14,"How many tag bits are needed for a direct-mapped cache with 1024 lines, 16-byte blocks and 32-bit addresses?",18
+COA,Computer Organization and Architecture,question,15,"What does DMA stand for?",Direct Memory Access
+COA,Computer Organization and Architecture,question,16,"Which I/O scheme uses separate instructions for I/O operations?",Isolated I/O
+COA,Computer Organization and Architecture,question,17,"What is the total instruction width for a 6-bit opcode and three 5-bit register fields with no immediate?",21
+COA,Computer Organization and Architecture,question,18,"How many sets does a fully associative cache have?",1
+COA,Computer Organization and Architecture,question,19,"What is the hit ratio defined as?",Hits divided by total memory accesses
+COA,Computer Organization and Architecture,question,20,"Which control unit design is generally faster: hardwired or microprogrammed?",Hardwired
+PDS,Programming and Data Structures,note,0,"Programming and Data Structures covers C programming fundamentals and the core data structures used in algorithm design. Focus on pointers, arrays, strings, structures, dynamic memory allocation, recursion and function call behaviour. Data structures include stacks and queues (including implementations using arrays, linked lists and two stacks), linked lists (singly, doubly and circular), trees (binary trees, traversals, binary search trees, AVL and heaps), hashing (chaining, open addressing, load factor), and B-trees. For each structure, know the basic operations, their time complexity and typical applications such as expression evaluation or priority queues. Trace code by hand on small inputs, since many questions ask for output or the number of nodes, edges or comparisons.",
+PDS,Programming and Data Structures,question,1,"What is the typical size of int in bytes on a 32-bit system?",4
+PDS,Programming and Data Structures,question,2,"What is the maximum number of nodes in a binary tree of height h, with root at height 0?",2^(h+1) - 1
+PDS,Programming and Data Structures,question,3,"What is the worst-case time complexity of binary search on n sorted elements?",O(log n)
+PDS,Programming and Data Structures,question,4,"Which order does a stack follow?",LIFO (Last In, First Out)
+PDS,Programming and Data Structures,question,5,"How many nodes does a complete binary tree of height 3 have?",15
+PDS,Programming and Data Structures,question,6,"What is the postfix form of A + B * C?",ABC*+
+PDS,Programming and Data Structures,question,7,"How many elements does an int array a[10][20] contain?",200
+PDS,Programming and Data Structures,question,8,"Which BST traversal outputs keys in sorted order?",Inorder traversal
+PDS,Programming and Data Structures,question,9,"In C, what does *(&x) evaluate to?",x
+PDS,Programming and Data Structures,question,10,"How many edges does a tree with 10 vertices have?",9
+PDS,Programming and Data Structures,question,11,"What is the formula for load factor in a hash table?",n / m (elements divided by table size)
+PDS,Programming and Data Structures,question,12,"What is the worst-case dequeue cost for a queue implemented using two stacks?",O(n)
+PDS,Programming and Data Structures,question,13,"How many pointers does each node of a doubly linked list contain?",2
+PDS,Programming and Data Structures,question,14,"What is the maximum number of children of a node in a B-tree of order m?",m
+PDS,Programming and Data Structures,question,15,"Which data structure is used implicitly by recursive function calls?",Stack
+PDS,Programming and Data Structures,question,16,"Which unary operator dereferences a pointer in C?",*
+PDS,Programming and Data Structures,question,17,"What does printf(""%d"", 5/2) print?",2
+PDS,Programming and Data Structures,question,18,"Where is the largest element stored in a max heap?",At the root
+PDS,Programming and Data Structures,question,19,"How many comparisons does linear search need in the worst case for n elements?",n
+PDS,Programming and Data Structures,question,20,"What is the average search cost in a chained hash table with load factor alpha?",O(1 + alpha)
+ALGO,Algorithms,note,0,"Algorithms is about designing efficient solutions and analyzing their complexity. Key topics include asymptotic notation, recurrence relations and the Master theorem, and divide and conquer methods such as merge sort, quick sort and binary search. Greedy algorithms cover activity selection, Huffman coding, Kruskal and Prim for minimum spanning trees, and Dijkstra for shortest paths. Dynamic programming covers the 0/1 knapsack, longest common subsequence, matrix chain multiplication, Floyd-Warshall and Bellman-Ford. Graph algorithms include BFS, DFS, topological sorting, and strongly connected components. Also study the basics of NP-completeness, reductions and approximation. For each algorithm, know its paradigm, time and space complexity, and when it fails, for example Dijkstra with negative edges.",
+ALGO,Algorithms,question,1,"What is the solution of the recurrence T(n) = 2T(n/2) + n?",O(n log n)
+ALGO,Algorithms,question,2,"What is the Master theorem solution for T(n) = 4T(n/2) + n?",O(n^2)
+ALGO,Algorithms,question,3,"What is the worst-case time complexity of quick sort?",O(n^2)
+ALGO,Algorithms,question,4,"Name the two standard algorithms for computing a minimum spanning tree.",Kruskal and Prim
+ALGO,Algorithms,question,5,"Dijkstra's algorithm fails in the presence of which type of edge weights?",Negative edge weights
+ALGO,Algorithms,question,6,"What is the time complexity of heap sort?",O(n log n)
+ALGO,Algorithms,question,7,"How many edges does a minimum spanning tree of a graph with V vertices have?",V - 1
+ALGO,Algorithms,question,8,"Which criterion does the greedy activity selection algorithm use?",Earliest finish time
+ALGO,Algorithms,question,9,"What is the auxiliary space complexity of merge sort?",O(n)
+ALGO,Algorithms,question,10,"What is the time complexity of Floyd-Warshall?",O(V^3)
+ALGO,Algorithms,question,11,"Name one algorithm used to find strongly connected components.",Kosaraju's or Tarjan's algorithm
+ALGO,Algorithms,question,12,"Which algorithm design paradigm is used to solve the 0/1 knapsack problem optimally?",Dynamic programming
+ALGO,Algorithms,question,13,"Which common sorting algorithm is stable?",Merge sort
+ALGO,Algorithms,question,14,"Topological sorting can only be applied to which type of graph?",Directed acyclic graph (DAG)
+ALGO,Algorithms,question,15,"What is the time complexity of Bellman-Ford?",O(VE)
+ALGO,Algorithms,question,16,"How many comparisons are needed to find the maximum of n elements?",n - 1
+ALGO,Algorithms,question,17,"Which classic problem is the first proven NP-complete problem?",Boolean Satisfiability (SAT)
+ALGO,Algorithms,question,18,"Which algorithm design paradigm does Huffman coding follow?",Greedy
+ALGO,Algorithms,question,19,"What is the amortized cost of inserting into a dynamic array?",O(1)
+ALGO,Algorithms,question,20,"Which string matching algorithm uses a rolling hash?",Rabin-Karp
+TOC,Theory of Computation,note,0,"Theory of Computation studies what computers can do and how efficiently they can do it. It begins with finite automata (DFA and NFA), regular expressions and their equivalence, and the pumping lemma for regular languages. Context-free grammars, pushdown automata, parse trees, ambiguity, and normal forms such as Chomsky and Greibach are next, along with the pumping lemma for context-free languages. Turing machines, decidability, the halting problem, and Rice theorem follow. Complexity topics include the classes P, NP, NP-complete and NP-hard, with the Cook-Levin theorem establishing SAT as NP-complete. Know closure properties of each language class, since they are frequently tested. Work through small automata by hand to build intuition.",
+TOC,Theory of Computation,question,1,"Which regular expression describes strings over {a,b} that end with a?",(a+b)*a
+TOC,Theory of Computation,question,2,"What is the main purpose of the pumping lemma for regular languages?",To prove that a language is not regular
+TOC,Theory of Computation,question,3,"Which Chomsky type corresponds to context-free grammars?",Type 2
+TOC,Theory of Computation,question,4,"Which computational model recognizes Type 0 (unrestricted) grammars?",Turing machine
+TOC,Theory of Computation,question,5,"Are context-free languages closed under intersection?",No
+TOC,Theory of Computation,question,6,"Are regular languages closed under complement?",Yes
+TOC,Theory of Computation,question,7,"What are the two standard acceptance criteria for a pushdown automaton?",Final state acceptance and empty stack acceptance
+TOC,Theory of Computation,question,8,"Is the halting problem decidable?",No
+TOC,Theory of Computation,question,9,"Give a context-free grammar for the language a^n b^n (n >= 0).",S -> aSb | epsilon
+TOC,Theory of Computation,question,10,"Is the language a^n b^n c^n context-free?",No
+TOC,Theory of Computation,question,11,"How many states does a minimal DFA need for strings whose length is a multiple of 3?",3
+TOC,Theory of Computation,question,12,"Which theorem states that all nontrivial semantic properties of Turing machines are undecidable?",Rice's theorem
+TOC,Theory of Computation,question,13,"Is SAT NP-complete?",Yes
+TOC,Theory of Computation,question,14,"What is the epsilon-closure of a state in an NFA?",Set of states reachable using only epsilon transitions
+TOC,Theory of Computation,question,15,"Is the grammar S -> S+S | a ambiguous?",Yes
+TOC,Theory of Computation,question,16,"Is the emptiness problem for regular languages decidable?",Yes
+TOC,Theory of Computation,question,17,"What memory bound does a linear bounded automaton have?",Linear in the input length
+TOC,Theory of Computation,question,18,"Which class of languages is accepted by a Turing machine?",Recursively enumerable languages
+TOC,Theory of Computation,question,19,"In Chomsky normal form, what forms are allowed for productions?",A -> BC or A -> a
+TOC,Theory of Computation,question,20,"Is the empty language regular?",Yes
+CD,Compiler Design,note,0,"Compiler Design explains how source code is translated into executable machine code. The main phases are lexical analysis, syntax analysis, semantic analysis, intermediate code generation, code optimization and code generation. Lexical analysis uses regular expressions and finite automata, while syntax analysis uses top-down parsers (LL(1), recursive descent) and bottom-up parsers (SLR, LALR, canonical LR). Know how to compute FIRST and FOLLOW sets, construct parsing tables, and detect conflicts. Semantic analysis covers symbol tables, type checking and syntax-directed translation. Intermediate code includes three-address code and quadruples, and backpatching handles control flow. Optimization covers local, loop and global techniques such as constant folding, dead code elimination and loop-invariant code motion. Register allocation is closely related to graph coloring.",
+CD,Compiler Design,question,1,"Which phase of the compiler comes first?",Lexical analysis
+CD,Compiler Design,question,2,"Which tool is commonly used to generate lexical analyzers?",Lex or Flex
+CD,Compiler Design,question,3,"Which LR parser is the most powerful among the LR family?",Canonical LR(1)
+CD,Compiler Design,question,4,"What does FIRST(A) represent?",The set of terminals that can begin strings derived from A
+CD,Compiler Design,question,5,"What is the three-address code for a = b + c * d?",t1 = c * d; a = b + t1
+CD,Compiler Design,question,6,"How is the dangling else ambiguity usually resolved?",Each else is matched with the nearest unmatched if
+CD,Compiler Design,question,7,"Which parser type is suited to handling operator expressions?",Operator precedence parser
+CD,Compiler Design,question,8,"Which data structure is commonly used to implement a symbol table?",Hash table
+CD,Compiler Design,question,9,"Register allocation is related to which NP-complete problem?",Graph coloring
+CD,Compiler Design,question,10,"Why must left recursion be removed for LL parsing?",It causes infinite recursion in top-down parsers
+CD,Compiler Design,question,11,"What does SDT stand for in compiler design?",Syntax-Directed Translation
+CD,Compiler Design,question,12,"Peephole optimization works on which part of the code?",A small window of consecutive instructions
+CD,Compiler Design,question,13,"What information does an activation record typically store?","Return address, parameters and local variables"
+CD,Compiler Design,question,14,"Which scoping rule uses access links to find non-local variables?",Static (lexical) scoping
+CD,Compiler Design,question,15,"Can an LL(1) grammar be left recursive?",No
+CD,Compiler Design,question,16,"Which compiler phase performs type checking?",Semantic analysis
+CD,Compiler Design,question,17,"Is loop-invariant code motion machine-independent or machine-dependent?",Machine-independent
+CD,Compiler Design,question,18,"What is the purpose of bootstrapping a compiler?",To write a compiler for a language in that same language
+CD,Compiler Design,question,19,"What is backpatching used for?",Filling in forward jump targets for boolean expressions and control flow
+CD,Compiler Design,question,20,"How many fields does a quadruple have?","4 (operator, two arguments and result)"
+OS,Operating Systems,note,0,"Operating Systems manages hardware resources and provides abstractions for programs. Core topics include process and thread concepts, process states, CPU scheduling (FCFS, SJF, SRTF, round robin, priority scheduling) and their performance metrics. Synchronization covers critical sections, mutex, semaphores, monitors and classic problems such as producer-consumer and readers-writers. Deadlock topics include the four necessary conditions, prevention, avoidance through the Banker's algorithm, and detection. Memory management covers paging, segmentation, virtual memory, page replacement algorithms (FIFO, LRU, optimal) and thrashing. File systems cover allocation methods, directory structure, inodes and free-space management. Disk scheduling includes FCFS, SSTF, SCAN and C-SCAN. Focus on worked examples, since numerical problems on scheduling and page replacement are common.",
+OS,Operating Systems,question,1,"How many necessary conditions must hold simultaneously for a deadlock?",4
+OS,Operating Systems,question,2,"Which algorithm is used for deadlock avoidance?",Banker's algorithm
+OS,Operating Systems,question,3,"How many pages does a 32-bit address space have with 4 KB pages?","2^20 (1,048,576)"
+OS,Operating Systems,question,4,"Which CPU scheduling algorithm minimizes average waiting time for a given set of processes?",Shortest Job First (SJF)
+OS,Operating Systems,question,5,"What happens to round robin scheduling when the time quantum is very large?",It behaves like FCFS
+OS,Operating Systems,question,6,"What causes thrashing?",Frequent page faults due to too few frames for the working set
+OS,Operating Systems,question,7,"What are the two atomic operations on a semaphore?",Wait (P) and signal (V)
+OS,Operating Systems,question,8,"Which page replacement algorithm exhibits Belady's anomaly?",FIFO
+OS,Operating Systems,question,9,"How many states are in a typical five-state process model?",5
+OS,Operating Systems,question,10,"Which page replacement algorithm replaces the page not needed for the longest future time?",Optimal (OPT)
+OS,Operating Systems,question,11,"What metadata does an inode store?",File attributes and pointers to data blocks
+OS,Operating Systems,question,12,"Which technique solves priority inversion?",Priority inheritance
+OS,Operating Systems,question,13,"What value does fork() return in the child process?",0
+OS,Operating Systems,question,14,"What is test-and-set?",A hardware atomic instruction used for synchronization
+OS,Operating Systems,question,15,"In which memory scheme does internal fragmentation occur?",Paging (fixed-size frames)
+OS,Operating Systems,question,16,"What is another name for the SCAN disk scheduling algorithm?",Elevator algorithm
+OS,Operating Systems,question,17,"What is the key difference between a mutex and a binary semaphore?",A mutex has ownership and must be unlocked by the thread that locked it
+OS,Operating Systems,question,18,"What is a zombie process?",A terminated process whose parent has not yet read its exit status
+OS,Operating Systems,question,19,"Which principle is the working set model based on?",Locality of reference
+OS,Operating Systems,question,20,"Which technique prevents starvation in scheduling?",Aging
+DBMS,Database Management Systems,note,0,"Database Management Systems covers how data is modeled, stored, queried and protected. Relational concepts include keys, integrity constraints and the relational algebra operators (selection, projection, join, union, difference). SQL topics include DDL, DML, joins, grouping, nested queries and views. Database design relies on functional dependencies, closure computation, normal forms (1NF, 2NF, 3NF, BCNF), lossless decomposition and dependency preservation. Storage and indexing cover B and B+ trees, hashing, and primary and secondary indexes. Transaction management covers ACID properties, schedules, conflict and view serializability, two-phase locking, deadlock handling and recovery using write-ahead logging. Practice normalization problems carefully, since closure and key-finding questions are very common in GATE.",
+DBMS,Database Management Systems,question,1,"Which normal form removes partial dependencies on a candidate key?",Second Normal Form (2NF)
+DBMS,Database Management Systems,question,2,"In BCNF, every determinant of a functional dependency must be what?",A superkey
+DBMS,Database Management Systems,question,3,"What does the D in ACID stand for?",Durability
+DBMS,Database Management Systems,question,4,"Which property does a serializable schedule guarantee?",Isolation
+DBMS,Database Management Systems,question,5,"Can a primary key contain NULL values?",No
+DBMS,Database Management Systems,question,6,"Which SQL command removes a table's structure and data?",DROP TABLE
+DBMS,Database Management Systems,question,7,"Which join returns unmatched rows from both tables?",FULL OUTER JOIN
+DBMS,Database Management Systems,question,8,"What does two-phase locking guarantee?",Conflict serializability
+DBMS,Database Management Systems,question,9,"Which symbol represents selection in relational algebra?",Sigma (σ)
+DBMS,Database Management Systems,question,10,"What is a minimal superkey called?",Candidate key
+DBMS,Database Management Systems,question,11,"What does the lossless join property guarantee?",The original relation is recovered by natural joining the decomposed relations
+DBMS,Database Management Systems,question,12,"Where are all data pointers stored in a B+ tree?",In the leaf nodes
+DBMS,Database Management Systems,question,13,"Which structure is used to detect deadlocks among transactions?",Wait-for graph
+DBMS,Database Management Systems,question,14,"What is the main purpose of write-ahead logging?",Supporting atomicity and recovery
+DBMS,Database Management Systems,question,15,"A foreign key must reference which attribute type in the parent table?",A primary key or unique key
+DBMS,Database Management Systems,question,16,"What is the cardinality of the Cartesian product of relations with 5 and 4 tuples?",20
+DBMS,Database Management Systems,question,17,"What is the difference between WHERE and HAVING?",WHERE filters rows before grouping and HAVING filters groups after aggregation
+DBMS,Database Management Systems,question,18,"Which events can activate a database trigger?","Insert, update and delete"
+DBMS,Database Management Systems,question,19,"Which normal form removes transitive dependencies?",Third Normal Form (3NF)
+DBMS,Database Management Systems,question,20,"Which index type is best suited for equality searches?",Hash index
+CN,Computer Networks,note,0,"Computer Networks covers how devices communicate across links, networks and the internet. Start with the OSI and TCP/IP layered models and the role of each layer. Data link topics include framing, error detection (parity, CRC, checksums), error correction (Hamming codes), flow control (stop-and-wait, sliding window protocols such as Go-Back-N and Selective Repeat) and medium access (ALOHA, CSMA/CD, CSMA/CA). Network layer topics include IP addressing, subnetting, CIDR, ARP, ICMP, routing algorithms (distance vector and link state) and IPv6. Transport layer covers UDP, TCP connection setup and teardown, reliable data transfer, congestion control and flow control. Application layer covers DNS, HTTP, SMTP and FTP. Practice subnetting and sliding window efficiency calculations, which appear often.",
+CN,Computer Networks,question,1,"How many layers does the OSI reference model have?",7
+CN,Computer Networks,question,2,"How many layers does the TCP/IP model have?",4
+CN,Computer Networks,question,3,"What is the default port number for HTTP?",80
+CN,Computer Networks,question,4,"How many bits are in an IPv4 address?",32
+CN,Computer Networks,question,5,"How many usable host addresses does a /24 subnet have?",254
+CN,Computer Networks,question,6,"Which protocol uses a three-way handshake to establish connections?",TCP
+CN,Computer Networks,question,7,"Which error detection technique uses polynomial division?",Cyclic Redundancy Check (CRC)
+CN,Computer Networks,question,8,"Which medium access protocol is used in classic wired Ethernet?",CSMA/CD
+CN,Computer Networks,question,9,"What does ARP map an IP address to?",MAC address
+CN,Computer Networks,question,10,"What is the maximum window size for Go-Back-N with n-bit sequence numbers?",2^n - 1
+CN,Computer Networks,question,11,"Which routing algorithm is used in link state protocols such as OSPF?",Dijkstra's algorithm
+CN,Computer Networks,question,12,"Which algorithm do distance vector routing protocols such as RIP use?",Bellman-Ford algorithm
+CN,Computer Networks,question,13,"What is the size of the UDP header in bytes?",8
+CN,Computer Networks,question,14,"What is the minimum size of a TCP header in bytes?",20
+CN,Computer Networks,question,15,"Which port does DNS use by default?",53
+CN,Computer Networks,question,16,"What minimum Hamming distance is needed to correct single-bit errors?",3
+CN,Computer Networks,question,17,"What is the protocol data unit at the network layer called?",Packet
+CN,Computer Networks,question,18,"What is the maximum payload size of a standard Ethernet frame in bytes?",1500
+CN,Computer Networks,question,19,"What is the efficiency of stop-and-wait ARQ where a is the ratio of propagation delay to transmission delay?",1 / (1 + 2a)
+CN,Computer Networks,question,20,"Which protocol translates domain names into IP addresses?",DNS
+GA,General Aptitude,note,0,"General Aptitude tests verbal and numerical reasoning skills that apply across all engineering disciplines. Verbal ability includes English grammar, synonyms and antonyms, sentence completion, verbal analogies, reading comprehension, and critical reasoning. Numerical ability covers arithmetic (percentages, ratios, averages, profit and loss, simple and compound interest), number series, speed, time and distance, work and time, age problems, and permutations and combinations. Analytical reasoning includes logical deduction, syllogisms, data interpretation from tables and charts, spatial reasoning, and direction sense. Build speed through daily timed practice, since the section is scored in a limited time. Read questions carefully, eliminate wrong options systematically, and avoid spending too long on any single question.",
+GA,General Aptitude,question,1,"Choose the synonym of meticulous.",Careful
+GA,General Aptitude,question,2,"Choose the antonym of abundant.",Scarce
+GA,General Aptitude,question,3,"Find the next number in the series 2, 6, 12, 20, ?",30
+GA,General Aptitude,question,4,"What is 20 percent of 250?",50
+GA,General Aptitude,question,5,"If A:B = 2:3 and B = 12, what is A?",8
+GA,General Aptitude,question,6,"A car travels at 60 km/h for 2.5 hours. What distance does it cover?",150 km
+GA,General Aptitude,question,7,"What is the average of 4, 8, 12 and 16?",10
+GA,General Aptitude,question,8,"What is the probability of drawing an ace from a standard 52-card deck?",1/13
+GA,General Aptitude,question,9,"What is the simple interest on Rs 1000 at 5 percent per annum for 2 years?",Rs 100
+GA,General Aptitude,question,10,"Which number is the odd one out in 3, 5, 7, 9?",9
+GA,General Aptitude,question,11,"Choose the correct verb: He ___ to school daily. (go / goes)",goes
+GA,General Aptitude,question,12,"If the cost price is 100 and the selling price is 120, what is the profit percentage?",20 percent
+GA,General Aptitude,question,13,"How many days are there in a leap year?",366
+GA,General Aptitude,question,14,"What is the angle between the hour and minute hands of a clock at 3:00?",90 degrees
+GA,General Aptitude,question,15,"A person faces north and turns right by 90 degrees. Which direction is he now facing?",East
+GA,General Aptitude,question,16,"Premises: All cats are animals. Some animals are dogs. Can we conclude that some cats are dogs?","No, this cannot be concluded"
+GA,General Aptitude,question,17,"If 4 men finish a job in 6 days, how many days will 2 men take?",12
+GA,General Aptitude,question,18,"In how many ways can 3 distinct books be arranged on a shelf?",6
+GA,General Aptitude,question,19,"What is the next letter in the sequence A, C, F, J, ?",O
+GA,General Aptitude,question,20,"Choose the correct sentence: I have lived here since 2010.",Correct as written (present perfect)

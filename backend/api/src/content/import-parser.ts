@@ -100,7 +100,7 @@ const questionImportSchema = z.object({
   id: uuidSchema.optional(),
   subjectId: uuidSchema,
   topicId: uuidSchema,
-  type: z.enum(['mcq', 'msq', 'nat']),
+  type: z.enum(['mcq', 'msq', 'nat', 'short']),
   statementLatex: z.string().trim().min(1).max(20_000),
   optionsJson: z.array(z.string().max(5000)).max(20).default([]),
   correctAnswerJson: z.union([

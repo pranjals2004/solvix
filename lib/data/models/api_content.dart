@@ -98,6 +98,7 @@ class SubmissionResult {
     required this.isCorrect,
     required this.solutionLatex,
     required this.attemptNo,
+    this.correctAnswer,
     this.countedForRank = false,
     this.leaderboardWeekStart,
     this.rankExclusionReason,
@@ -110,6 +111,7 @@ class SubmissionResult {
   final bool isCorrect;
   final String solutionLatex;
   final int attemptNo;
+  final Object? correctAnswer;
   final bool countedForRank;
   final String? leaderboardWeekStart;
   final String? rankExclusionReason;
@@ -124,6 +126,7 @@ class SubmissionResult {
     isCorrect: json['isCorrect'] as bool,
     solutionLatex: json['solutionLatex'] as String,
     attemptNo: json['attemptNo'] as int,
+    correctAnswer: json['correctAnswer'],
     countedForRank: json['countedForRank'] as bool? ?? false,
     leaderboardWeekStart: json['leaderboardWeekStart'] as String?,
     rankExclusionReason: json['rankExclusionReason'] as String?,

@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { parse } from 'csv-parse/sync';
 import dotenv from 'dotenv';
 import type { PoolClient } from 'pg';
 import { ContentService } from '../backend/api/src/content/service';
@@ -8,6 +10,7 @@ import type { NoteInput, QuestionInput } from '../backend/api/src/content/types'
 import { loadConfig } from '../backend/api/src/config/env';
 import { createPool } from '../backend/api/src/db/pool';
 import { PostgresContentRepository } from '../backend/api/src/db/content-repository';
+import { demoQuestions } from './demo_questions';
 
 dotenv.config({ path: resolve(__dirname, '../.env') });
 
@@ -32,7 +35,50 @@ const subjectSeeds = [
     name: 'Theory of Computation', slug: 'theory-of-computation',
     topics: [{ name: 'Finite Automata', slug: 'finite-automata' }, { name: 'Context-Free Grammars', slug: 'context-free-grammars' }],
   },
+  {
+    name: 'Digital Logic', slug: 'digital-logic',
+    topics: [{ name: 'Boolean Algebra and Logic Design', slug: 'boolean-algebra' }],
+  },
+  {
+    name: 'Computer Organization and Architecture', slug: 'computer-organization-architecture',
+    topics: [{ name: 'Computer Architecture', slug: 'computer-architecture' }],
+  },
+  {
+    name: 'Compiler Design', slug: 'compiler-design',
+    topics: [{ name: 'Parsing and Translation', slug: 'parsing-translation' }],
+  },
+  {
+    name: 'Engineering Mathematics', slug: 'engineering-mathematics',
+    topics: [{ name: 'Mathematical Foundations', slug: 'mathematical-foundations' }],
+  },
+  {
+    name: 'General Aptitude', slug: 'general-aptitude',
+    topics: [{ name: 'Verbal and Quantitative Aptitude', slug: 'verbal-quantitative' }],
+  },
 ];
+
+const importedCsvSubjects: Record<string, { subjectSlug: string; topicSlug: string }> = {
+  ENGMATH: { subjectSlug: 'engineering-mathematics', topicSlug: 'mathematical-foundations' },
+  DL: { subjectSlug: 'digital-logic', topicSlug: 'boolean-algebra' },
+  COA: { subjectSlug: 'computer-organization-architecture', topicSlug: 'computer-architecture' },
+  PDS: { subjectSlug: 'dsa', topicSlug: 'data-structures' },
+  ALGO: { subjectSlug: 'dsa', topicSlug: 'algorithms' },
+  TOC: { subjectSlug: 'theory-of-computation', topicSlug: 'finite-automata' },
+  CD: { subjectSlug: 'compiler-design', topicSlug: 'parsing-translation' },
+  OS: { subjectSlug: 'operating-systems', topicSlug: 'processes-threads' },
+  DBMS: { subjectSlug: 'dbms', topicSlug: 'relational-model' },
+  CN: { subjectSlug: 'computer-networks', topicSlug: 'network-layers' },
+  GA: { subjectSlug: 'general-aptitude', topicSlug: 'verbal-quantitative' },
+};
+
+type ImportedCsvRow = {
+  subject_id: string;
+  subject: string;
+  record_type: string;
+  item_no: string;
+  content: string;
+  answer: string;
+};
 
 const demoNoteSeeds = [
   {
@@ -90,10 +136,17 @@ async function seed() {
     const questions: Array<{ id: string; input: QuestionInput }> = [];
     const notes: Array<{ id: string; input: NoteInput }> = [];
     for (const subject of subjectSeeds) {
-      for (let index = 1; index <= 10; index += 1) {
-        const topic = subject.topics[(index - 1) % subject.topics.length]!;
+      const subjectQuestions = demoQuestions[subject.slug];
+      if (!subjectQuestions) continue;
+      if (subjectQuestions.length !== 10) {
+        throw new Error(`Expected ten demo questions for subject ${subject.slug}.`);
+      }
+      for (const [questionIndex, demo] of subjectQuestions.entries()) {
+        const index = questionIndex + 1;
+        const topic = subject.topics[questionIndex % subject.topics.length]!;
         const topicId = topicIds.get(`${subject.slug}/${topic.slug}`);
         if (!topicId) throw new Error(`Seed topic was not created: ${subject.slug}/${topic.slug}`);
+        // Keep the original deterministic IDs so rerunning the seed replaces placeholder rows in place.
         const reference = `${subject.slug}-placeholder-${String(index).padStart(2, '0')}`;
         questions.push({
           id: deterministicUuid(reference),
@@ -101,14 +154,14 @@ async function seed() {
             subjectId: topicIds.get(`${subject.slug}/__subject__`)!,
             topicId,
             type: 'mcq',
-            statementLatex: `[SYNTHETIC PLACEHOLDER ${reference}] Replace this text with reviewed, licensed ${subject.name} question content before release. This record exists only to exercise content browsing and import flows.`,
-            optionsJson: ['Placeholder option A', 'Placeholder option B', 'Placeholder option C', 'Placeholder option D'],
-            correctAnswerJson: { selected: 'A', syntheticPlaceholder: true },
+            statementLatex: `DEMO PRACTICE — ${demo.statement}`,
+            optionsJson: demo.options,
+            correctAnswerJson: demo.correctAnswer,
             natTolerance: null,
-            solutionLatex: `SYNTHETIC PLACEHOLDER SOLUTION for ${reference}. Replace with an author-reviewed worked solution before release.`,
+            solutionLatex: `DEMO SOLUTION — ${demo.solution}`,
             isPyq: false,
             pyqYear: null,
-            difficultyRating: 1000,
+            difficultyRating: demo.difficulty,
           },
         });
       }
@@ -132,11 +185,82 @@ async function seed() {
       });
     }
 
+    const parsedCsv = parse(
+      readFileSync(resolve(__dirname, '../content/import/Solvix_data.csv'), 'utf8'),
+      { skip_empty_lines: true, trim: true, bom: true, relax_column_count: true },
+    ) as string[][];
+    const expectedCsvHeader = ['subject_id', 'subject', 'record_type', 'item_no', 'content', 'answer'];
+    const csvHeader = parsedCsv.shift();
+    if (!csvHeader || csvHeader.join('|') !== expectedCsvHeader.join('|')) {
+      throw new Error('Unexpected header in content/import/Solvix_data.csv.');
+    }
+    const importedRows: ImportedCsvRow[] = parsedCsv.map((fields, index) => {
+      if (fields.length < expectedCsvHeader.length) {
+        throw new Error(`Incomplete CSV record at data row ${index + 2}.`);
+      }
+      return {
+        subject_id: fields[0]!,
+        subject: fields[1]!,
+        record_type: fields[2]!,
+        item_no: fields[3]!,
+        content: fields[4]!,
+        // The supplied file has an unquoted comma in a text answer; preserve the trailing fields.
+        answer: fields.slice(5).join(', ').trim(),
+      };
+    });
+    let importedQuestionCount = 0;
+    let importedNoteCount = 0;
+    for (const row of importedRows) {
+      const mapping = importedCsvSubjects[row.subject_id];
+      if (!mapping || !row.subject || !row.content) {
+        throw new Error(`Invalid row in content/import/Solvix_data.csv: ${row.subject_id}/${row.item_no}`);
+      }
+      const subjectId = topicIds.get(`${mapping.subjectSlug}/__subject__`);
+      const topicId = topicIds.get(`${mapping.subjectSlug}/${mapping.topicSlug}`);
+      if (!subjectId || !topicId) {
+        throw new Error(`CSV subject mapping is missing a seeded topic: ${row.subject_id}`);
+      }
+      const reference = `user-solvix-csv-${row.subject_id}-${row.item_no}`;
+      if (row.record_type === 'question') {
+        if (!row.answer) throw new Error(`Missing CSV answer for ${reference}`);
+        questions.push({
+          id: deterministicUuid(reference),
+          input: {
+            subjectId,
+            topicId,
+            type: 'short',
+            statementLatex: `IMPORTED DRAFT — ${row.content}`,
+            optionsJson: [],
+            correctAnswerJson: row.answer,
+            natTolerance: null,
+            solutionLatex: `IMPORTED ANSWER — ${row.answer}\n\nThe supplied CSV did not include worked solution steps. Verify this answer before using this item for assessment.`,
+            isPyq: false,
+            pyqYear: null,
+            difficultyRating: 1000,
+          },
+        });
+        importedQuestionCount += 1;
+      } else if (row.record_type === 'note') {
+        notes.push({
+          id: deterministicUuid(`user-solvix-csv-note-${row.subject_id}`),
+          input: {
+            subjectId,
+            topicId,
+            title: `[IMPORTED DRAFT] ${row.subject} overview`,
+            content: `IMPORTED DRAFT STUDY MATERIAL — verify against an instructor-approved source before relying on it.\n\n${row.content}`,
+          },
+        });
+        importedNoteCount += 1;
+      } else {
+        throw new Error(`Unknown record_type in content/import/Solvix_data.csv: ${row.record_type}`);
+      }
+    }
+
     const repository = new PostgresContentRepository(pool);
     const content = new ContentService(repository, new MlServiceEmbeddingClient(config.mlServiceUrl));
     const result = await content.importContent(questions, notes);
     process.stdout.write(
-      `Seeded ${result.questions} clearly labelled synthetic placeholder questions and ${result.notes} clearly labelled demo study notes.\n`,
+      `Upserted ${result.questions} questions (${importedQuestionCount} imported short-answer drafts) and ${result.notes} notes (${importedNoteCount} imported drafts).\n`,
     );
   } finally {
     client.release();

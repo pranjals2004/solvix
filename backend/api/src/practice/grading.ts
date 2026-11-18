@@ -22,7 +22,19 @@ export function gradeAnswer(
     return sameSet(expectedValues, submittedValues);
   }
 
+  if (type === 'short') {
+    const expectedText = shortAnswerText(correct);
+    const submittedText = shortAnswerText(submitted);
+    return expectedText !== null && submittedText !== null && expectedText === submittedText;
+  }
+
   return answerText(submitted) !== null && answerText(submitted) === answerText(correct);
+}
+
+function shortAnswerText(value: unknown): string | null {
+  const unwrapped = unwrapAnswer(value);
+  if (typeof unwrapped !== 'string' || !unwrapped.trim()) return null;
+  return unwrapped.normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-US');
 }
 
 function answerList(value: unknown): string[] | null {

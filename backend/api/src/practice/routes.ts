@@ -50,6 +50,7 @@ export function createPracticeRouter(
         submission: {
           isCorrect: result.isCorrect,
           solutionLatex: result.solutionLatex,
+          correctAnswer: result.correctAnswer ?? null,
           attemptNo: result.attemptNo,
           countedForRank: result.countedForRank,
           leaderboardWeekStart: result.leaderboardWeekStart,

@@ -17,7 +17,7 @@
 - **Chunk long source content at 1,200 characters with 150 characters of overlap.** This is a simple deterministic baseline that keeps source ordering and avoids introducing another content-processing dependency.
 - **Require the ML service for writes that create retrieval content.** If embeddings are unavailable or malformed, the API rejects the write/import instead of persisting content that cannot be retrieved. No synthetic vectors are used.
 - **Use slugs for CSV imports and UUIDs for JSON imports.** CSV stays readable for spreadsheet editing, while JSON can preserve stable database IDs for repeatable imports.
-- **Label seeded questions as synthetic placeholders and seeded notes as demo study material.** They demonstrate question types and the Study reader, but are not represented as authentic GATE questions, instructor-reviewed material, or research results. Replace them with approved content before release.
++ **Use original demo practice questions for local seeding instead of empty placeholder text.** Each seed row includes options, a grading key, and a worked explanation so the practice flow can be demonstrated end to end. They remain labelled demo material, are not PYQs or instructor-reviewed, and are not research results.
 
 ## Phase 3
 
@@ -89,3 +89,7 @@
 
 - **Keep synthetic simulations in memory and export them to a separate labelled file.** A fixed synthetic learner model exercises selection, confidence, grading, and Elo updates without adding synthetic accounts or submissions to the real database.
 - **Evaluate stored outcomes read-only, grouped by assigned arm and local week.** Bootstrap learner-week accuracy means rather than individual attempts, use the project ECE bins, and export only aggregates. Leave unavailable metrics blank; observational reports do not establish causal superiority.
+
+## Imported question dataset
+
+- **Keep the supplied question/answer CSV as short-answer practice because it has no option choices or worked solutions.** Do not invent distractors or claim it is a PYQ source. Imported questions and notes are labelled draft content, and short-answer grading ignores case and repeated whitespace while otherwise matching the stored answer exactly.

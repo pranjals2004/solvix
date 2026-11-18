@@ -25,7 +25,7 @@ class QuestionAttemptScreen extends ConsumerStatefulWidget {
 
 class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
   final Stopwatch _stopwatch = Stopwatch();
-  final TextEditingController _numericAnswer = TextEditingController();
+  final TextEditingController _textAnswer = TextEditingController();
   final Set<int> _selectedOptions = {};
   Timer? _clock;
   int? _confidence;
@@ -37,6 +37,7 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
 
   bool get _isMultipleChoice => widget.question.type == 'msq';
   bool get _isNumeric => widget.question.type == 'nat';
+  bool get _isShortAnswer => widget.question.type == 'short';
 
   @override
   void initState() {
@@ -52,17 +53,15 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
   @override
   void dispose() {
     _clock?.cancel();
-    _numericAnswer.dispose();
+    _textAnswer.dispose();
     super.dispose();
   }
 
   String _letter(int index) => String.fromCharCode(65 + index);
 
   Object? get _answer {
-    if (_isNumeric) {
-      return _numericAnswer.text.trim().isEmpty
-          ? null
-          : _numericAnswer.text.trim();
+    if (_isNumeric || _isShortAnswer) {
+      return _textAnswer.text.trim().isEmpty ? null : _textAnswer.text.trim();
     }
     if (_isMultipleChoice) {
       if (_selectedOptions.isEmpty) return null;
@@ -152,15 +151,17 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
                 style: theme.textTheme.titleMedium?.copyWith(height: 1.45),
               ),
               const SizedBox(height: 24),
-              if (_isNumeric)
+              if (_isNumeric || _isShortAnswer)
                 TextField(
-                  controller: _numericAnswer,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
-                  ),
+                  controller: _textAnswer,
+                  keyboardType: _isNumeric
+                      ? const TextInputType.numberWithOptions(
+                          decimal: true,
+                          signed: true,
+                        )
+                      : TextInputType.text,
                   decoration: const InputDecoration(
-                    labelText: 'Your numerical answer',
+                    labelText: 'Your answer',
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (_) => setState(() {}),
@@ -251,7 +252,11 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
                   ),
                 )
               else
-                _ResultCard(result: _result!, confidence: _confidence!),
+                _ResultCard(
+                  result: _result!,
+                  confidence: _confidence!,
+                  question: question,
+                ),
             ],
           ),
         ),
@@ -332,11 +337,37 @@ class _TypeBadge extends StatelessWidget {
   );
 }
 
+String _formatCorrectAnswer(Object? rawAnswer, ApiQuestion question) {
+  var answer = rawAnswer;
+  if (answer is Map) {
+    answer = answer['selected'] ?? answer['answer'] ?? answer['value'];
+  }
+  if (answer is List) {
+    return answer
+        .map((item) => _formatCorrectAnswer(item, question))
+        .join(', ');
+  }
+  final text = answer?.toString().trim() ?? '';
+  final label = text.toUpperCase();
+  if (label.length == 1) {
+    final index = label.codeUnitAt(0) - 65;
+    if (index >= 0 && index < question.options.length) {
+      return '$label. ${question.options[index]}';
+    }
+  }
+  return text;
+}
+
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.result, required this.confidence});
+  const _ResultCard({
+    required this.result,
+    required this.confidence,
+    required this.question,
+  });
 
   final SubmissionResult result;
   final int confidence;
+  final ApiQuestion question;
 
   @override
   Widget build(BuildContext context) {
@@ -371,6 +402,15 @@ class _ResultCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
+            if (!result.isCorrect && result.correctAnswer != null)
+              Text(
+                'Correct answer: ${_formatCorrectAnswer(result.correctAnswer, question)}',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            if (!result.isCorrect && result.correctAnswer != null)
+              const SizedBox(height: 6),
             Text(
               'Confidence recorded: $confidence / 5',
               style: Theme.of(context).textTheme.bodySmall,

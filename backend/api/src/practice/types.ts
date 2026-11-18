@@ -12,6 +12,7 @@ export type SubmissionInput = {
 export type SubmissionResult = {
   isCorrect: boolean;
   solutionLatex: string;
+  correctAnswer?: unknown;
   attemptNo: number;
   countedForRank: boolean;
   leaderboardWeekStart: string | null;

@@ -17,7 +17,7 @@ Base path: `/api/v1`. JSON errors use `{ "error": { "code": string, "message": s
 | GET | `/questions` | Browse questions; filters: `subjectId`, `topicId`, `pyq`, `year`, `limit`, `offset` |
 | GET | `/questions/:questionId` | Get a question without its answer key or worked solution |
 | GET | `/notes?topicId=` | List notes for a topic |
-| POST | `/submissions` | Authenticated question attempt; validates confidence 1–5 and returns correctness plus the worked solution |
+| POST | `/submissions` | Authenticated question attempt; validates confidence 1–5 and returns correctness, the answer key after submission, and the worked solution |
 | GET | `/practice/next?topicId=` | Authenticated arm-aware question selection; due resurfacing is prioritized |
 | GET | `/progress` | Authenticated topic rating, attempt, accuracy, and recent calibration observations |
 | POST | `/admin/misconceptions/run` | Admin-only queued clustering run; returns HTTP 202 and run/job id |
@@ -48,7 +48,7 @@ Authenticated routes use `Authorization: Bearer <access-token>`. Registration re
 
 Requests under `/api/v1` share a Redis-backed limit of 120 requests per IP address per 60-second window. Responses use the standard `RateLimit` headers; excess requests receive HTTP 429.
 
-`POST /submissions` requires a bearer token and a body such as `{ "questionId": "<UUID>", "answer": "A", "timeTakenSec": 18, "confidence": 4 }`. Confidence is an integer from 1 to 5. Submit MCQ labels such as `"A"`, MSQ label arrays such as `["A", "C"]`, and NAT numbers or numeric strings. The endpoint records each attempt, updates skill and question ratings, schedules missed items for resurfacing, and returns correctness, worked solution, leaderboard accounting, and before/after ratings.
+`POST /submissions` requires a bearer token and a body such as `{ "questionId": "<UUID>", "answer": "A", "timeTakenSec": 18, "confidence": 4 }`. Confidence is an integer from 1 to 5. Submit MCQ labels such as `"A"`, MSQ label arrays such as `["A", "C"]`, NAT numbers or numeric strings, and short answers as text. Short answers are compared case-insensitively after Unicode and whitespace normalization; wording still needs to match the stored answer. The endpoint records each attempt, updates skill and question ratings, schedules missed items for resurfacing, and returns correctness, the solution and correct answer after submission, leaderboard accounting, and before/after ratings.
 
 `GET /practice/next` requires a UUID `topicId`. It returns `{question,isResurfaced,selectionMode,skillRating}` or `{question:null,reason:"NO_AVAILABLE_QUESTIONS"}`. Due resurfacing is offered first. Otherwise the `random` arm samples randomly and the two Elo arms select near the user's topic rating while avoiding recently seen questions when possible. Question responses never include answer keys.
 

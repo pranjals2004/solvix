@@ -4,7 +4,7 @@ Run commands from the repository root.
 
 ## Seed local demo content
 
-Start the API dependencies and ML service, then run `npm run db:seed`. The seed adds clearly labelled synthetic placeholder questions and demo study notes. The ML service creates embeddings for retrieval content; the seed fails rather than writing fixed or placeholder vectors if embedding generation is unavailable. This content is for local development and must not be treated as authentic GATE material or research data.
+Apply migrations, start the API dependencies and ML service, then run `npm run db:seed`. The seed upserts original, clearly labelled demo multiple-choice questions with answer keys and worked solutions, plus demo study notes. It also imports the user-provided `content/import/Solvix_data.csv`; because that CSV has no answer choices or worked steps, those rows use short-answer grading and are labelled as draft material. All seeded/imported items are non-PYQ and need review before classroom or research use. The ML service creates embeddings for retrieval content; the seed fails rather than writing fixed or placeholder vectors if embedding generation is unavailable. This content is for local development and must not be treated as research data.
 
 ## Export misconception clusters
 

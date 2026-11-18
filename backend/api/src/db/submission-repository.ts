@@ -194,6 +194,7 @@ export class PostgresSubmissionRepository implements SubmissionRepository {
       return {
         isCorrect,
         solutionLatex: question.solution_latex,
+        correctAnswer: question.correct_answer_json,
         attemptNo,
         countedForRank,
         leaderboardWeekStart,
@@ -227,7 +228,7 @@ export class PostgresSubmissionRepository implements SubmissionRepository {
     if (!isCorrect) {
       await client.query(
         `INSERT INTO resurface_queue (user_id, question_id, due_at, interval_days, stage)
-         VALUES ($1, $2, $3 + INTERVAL '1 day', 1, 0)
+         VALUES ($1, $2, $3::timestamptz + INTERVAL '1 day', 1, 0)
          ON CONFLICT (user_id, question_id) DO UPDATE
          SET due_at = EXCLUDED.due_at, interval_days = 1, stage = 0, last_presented_at = NULL`,
         [userId, questionId, answeredAt],
@@ -238,7 +239,7 @@ export class PostgresSubmissionRepository implements SubmissionRepository {
       `UPDATE resurface_queue
        SET stage = LEAST(stage + 1, 3),
            interval_days = CASE LEAST(stage + 1, 3) WHEN 1 THEN 3 WHEN 2 THEN 7 ELSE 14 END,
-           due_at = $3 + (CASE LEAST(stage + 1, 3) WHEN 1 THEN 3 WHEN 2 THEN 7 ELSE 14 END * INTERVAL '1 day'),
+           due_at = $3::timestamptz + (CASE LEAST(stage + 1, 3) WHEN 1 THEN 3 WHEN 2 THEN 7 ELSE 14 END * INTERVAL '1 day'),
            last_presented_at = NULL
        WHERE user_id = $1 AND question_id = $2 AND due_at <= $3`,
       [userId, questionId, answeredAt],
