@@ -12,11 +12,17 @@ class QuestionAttemptScreen extends ConsumerStatefulWidget {
   const QuestionAttemptScreen({
     required this.question,
     required this.subjectName,
+    this.questionQueue,
+    this.queueIndex = 0,
+    this.adaptiveTopicId,
     super.key,
   });
 
   final ApiQuestion question;
   final String subjectName;
+  final List<ApiQuestion>? questionQueue;
+  final int queueIndex;
+  final String? adaptiveTopicId;
 
   @override
   ConsumerState<QuestionAttemptScreen> createState() =>
@@ -32,12 +38,21 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
   int? _singleChoice;
   int _elapsedSeconds = 0;
   bool _submitting = false;
+  bool _loadingNext = false;
   String? _error;
   SubmissionResult? _result;
 
   bool get _isMultipleChoice => widget.question.type == 'msq';
   bool get _isNumeric => widget.question.type == 'nat';
   bool get _isShortAnswer => widget.question.type == 'short';
+  bool get _hasQueuedNext =>
+      widget.questionQueue != null &&
+      widget.queueIndex + 1 < widget.questionQueue!.length;
+  bool get _canLoadAdaptiveNext => widget.adaptiveTopicId != null;
+
+  String get _nextActionLabel => _hasQueuedNext || _canLoadAdaptiveNext
+      ? 'Next question'
+      : 'Finish practice';
 
   @override
   void initState() {
@@ -92,6 +107,63 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  Future<void> _goToNextQuestion() async {
+    final queue = widget.questionQueue;
+    if (queue != null && widget.queueIndex + 1 < queue.length) {
+      final nextIndex = widget.queueIndex + 1;
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => QuestionAttemptScreen(
+            question: queue[nextIndex],
+            subjectName: widget.subjectName,
+            questionQueue: queue,
+            queueIndex: nextIndex,
+          ),
+        ),
+      );
+      return;
+    }
+
+    final topicId = widget.adaptiveTopicId;
+    if (topicId != null) {
+      setState(() => _loadingNext = true);
+      try {
+        final next = await ref
+            .read(solvixApiProvider)
+            .getNextQuestion(topicId: topicId);
+        if (!mounted) return;
+        if (next.question == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No next question is available right now.'),
+            ),
+          );
+          return;
+        }
+        await Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => QuestionAttemptScreen(
+              question: next.question!,
+              subjectName: widget.subjectName,
+              adaptiveTopicId: topicId,
+            ),
+          ),
+        );
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(apiErrorMessage(error))));
+        }
+      } finally {
+        if (mounted) setState(() => _loadingNext = false);
+      }
+      return;
+    }
+
+    if (mounted) Navigator.of(context).pop();
   }
 
   @override
@@ -265,10 +337,33 @@ class _QuestionAttemptScreenState extends ConsumerState<QuestionAttemptScreen> {
                   ),
                 )
               else
-                _ResultCard(
-                  result: _result!,
-                  confidence: _confidence!,
-                  question: question,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _ResultCard(
+                      result: _result!,
+                      confidence: _confidence!,
+                      question: question,
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: _loadingNext ? null : _goToNextQuestion,
+                      icon: _loadingNext
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Icon(
+                              _nextActionLabel == 'Finish practice'
+                                  ? Icons.done
+                                  : Icons.navigate_next,
+                            ),
+                      label: Text(
+                        _loadingNext ? 'Loading next…' : _nextActionLabel,
+                      ),
+                    ),
+                  ],
                 ),
             ],
           ),

@@ -117,12 +117,14 @@ class SolvixApi {
   Future<List<ApiQuestion>> getQuestions({
     String? subjectId,
     String? topicId,
+    int limit = 100,
   }) async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/questions',
       queryParameters: {
         if (subjectId != null) 'subjectId': subjectId,
         if (topicId != null) 'topicId': topicId,
+        'limit': limit,
       },
     );
     return (response.data!['questions'] as List<dynamic>)

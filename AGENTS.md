@@ -47,6 +47,7 @@ Use Node.js 20, Flutter/Dart versions declared by the Flutter package, and Pytho
 - Doubt requests use a Redis-backed BullMQ queue and remain pollable at `GET /api/v1/doubts/:id`; Socket.IO only delivers updates to the authenticated user's room.
 - Weekly leaderboard counts are durable in PostgreSQL and projected into a timezone-specific Redis sorted set; reads reconcile the active week, and the worker archives finished weeks.
 - Adaptive practice updates per-topic skill and per-question difficulty estimates transactionally, records every rating event, prioritizes due resurfacing, and exposes API-backed ECE progress.
+- After grading, the Flutter attempt screen offers a direct next-question action: ordered topic browsing advances within its loaded queue, while adaptive sessions request the next item from `/practice/next`.
 - Peer doubts use authenticated, bounded API routes, subject/topic filters, optional anonymous authorship, and per-user Redis posting limits.
 - User exports omit credentials; confirmed account deletion removes database cascades, private uploads, the active leaderboard entry, and revokes existing sessions.
 - Misconception clustering is queued to the separate worker, which sends anonymized topic doubts to the FastAPI UMAP/HDBSCAN endpoint. Admin labels are required before tagged hints are returned to students.

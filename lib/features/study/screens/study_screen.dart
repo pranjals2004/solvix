@@ -189,6 +189,7 @@ class TopicQuestionsScreen extends ConsumerWidget {
                     builder: (_) => QuestionAttemptScreen(
                       question: result.question!,
                       subjectName: subject.name,
+                      adaptiveTopicId: topic.id,
                     ),
                   ),
                 );
@@ -245,6 +246,8 @@ class TopicQuestionsScreen extends ConsumerWidget {
                           builder: (_) => QuestionAttemptScreen(
                             question: question,
                             subjectName: subject.name,
+                            questionQueue: items,
+                            queueIndex: index,
                           ),
                         ),
                       ),

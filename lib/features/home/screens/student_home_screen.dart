@@ -56,6 +56,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
           builder: (_) => QuestionAttemptScreen(
             question: question,
             subjectName: topic.subjectName,
+            adaptiveTopicId: topic.topicId,
           ),
         ),
       );
